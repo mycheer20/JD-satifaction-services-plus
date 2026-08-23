@@ -1,26 +1,339 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ---------------------------------------------------------------------------
+   JDSATISFACTION SERVICES PLUS — Belgian blue · noir · blanc + thèmes par famille
+   --------------------------------------------------------------------------- */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-brand-950: #030712;
+  --color-brand-900: #0a1628;
+  --color-brand-800: #0f2744;
+  --color-brand-700: #1e3a8a;
+  --color-brand-600: #2563eb;
+  --color-brand-500: #3b82f6;
+  --color-brand-400: #60a5fa;
+  --color-brand-200: #bfdbfe;
+  --color-brand-100: #dbeafe;
+  --color-brand-50: #eff6ff;
+
+  --color-background: #fafbfd;
+  --color-foreground: #0a1628;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgb(10 22 40 / 0.05);
+  --shadow-md: 0 4px 16px rgb(10 22 40 / 0.08);
+  --shadow-lg: 0 12px 40px rgb(10 22 40 / 0.12);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --accent: var(--color-brand-600);
+  --accent-hover: var(--color-brand-700);
+  --accent-soft: var(--color-brand-100);
+  --accent-foreground: #ffffff;
+  --hero-from: #0a1628;
+  --hero-via: #1e3a8a;
+  --hero-to: #0f2744;
+  --hero-foreground: #ffffff;
+  --hero-muted: rgb(255 255 255 / 0.82);
+  --family-glow: rgb(37 99 235 / 0.35);
+  --ring-color: rgb(37 99 235 / 0.25);
+}
+
+[data-family="informatique"] {
+  --accent: #06b6d4;
+  --accent-hover: #0891b2;
+  --accent-soft: #ecfeff;
+  --accent-foreground: #042f2e;
+  --hero-from: #020617;
+  --hero-via: #0c4a6e;
+  --hero-to: #164e63;
+  --hero-foreground: #ffffff;
+  --hero-muted: rgb(255 255 255 / 0.82);
+  --family-glow: rgb(6 182 212 / 0.45);
+  --ring-color: rgb(6 182 212 / 0.3);
+}
+
+[data-family="gaming"] {
+  --accent: #d946ef;
+  --accent-hover: #c026d3;
+  --accent-soft: #fdf4ff;
+  --accent-foreground: #ffffff;
+  --hero-from: #090014;
+  --hero-via: #581c87;
+  --hero-to: #0e7490;
+  --hero-foreground: #ffffff;
+  --hero-muted: rgb(255 255 255 / 0.85);
+  --family-glow: rgb(217 70 239 / 0.5);
+  --ring-color: rgb(217 70 239 / 0.35);
+}
+
+[data-family="fournitures-scolaires"] {
+  --accent: #ca8a04;
+  --accent-hover: #a16207;
+  --accent-soft: #fef9c3;
+  --accent-foreground: #422006;
+  --hero-from: #fefce8;
+  --hero-via: #fef08a;
+  --hero-to: #fde68a;
+  --hero-foreground: #422006;
+  --hero-muted: #713f12;
+  --family-glow: rgb(234 179 8 / 0.25);
+  --ring-color: rgb(202 138 4 / 0.25);
+}
+
+[data-family="bureau"] {
+  --accent: #334155;
+  --accent-hover: #1e293b;
+  --accent-soft: #e2e8f0;
+  --accent-foreground: #ffffff;
+  --hero-from: #f1f5f9;
+  --hero-via: #cbd5e1;
+  --hero-to: #94a3b8;
+  --hero-foreground: #0f172a;
+  --hero-muted: #334155;
+  --family-glow: rgb(71 85 105 / 0.2);
+  --ring-color: rgb(71 85 105 / 0.25);
+}
+
+[data-family="maison-alimentaire"] {
+  --accent: #16a34a;
+  --accent-hover: #15803d;
+  --accent-soft: #dcfce7;
+  --accent-foreground: #ffffff;
+  --hero-from: #14532d;
+  --hero-via: #166534;
+  --hero-to: #854d0e;
+  --hero-foreground: #ffffff;
+  --hero-muted: rgb(255 255 255 / 0.82);
+  --family-glow: rgb(22 163 74 / 0.3);
+  --ring-color: rgb(22 163 74 / 0.25);
+}
+
+[data-family="cosmetiques"] {
+  --accent: #db2777;
+  --accent-hover: #be185d;
+  --accent-soft: #fce7f3;
+  --accent-foreground: #ffffff;
+  --hero-from: #500724;
+  --hero-via: #9d174d;
+  --hero-to: #831843;
+  --hero-foreground: #ffffff;
+  --hero-muted: rgb(255 255 255 / 0.85);
+  --family-glow: rgb(219 39 119 / 0.35);
+  --ring-color: rgb(219 39 119 / 0.25);
+}
+
+[data-family="sport-loisirs"] {
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+  --accent-soft: #ffedd5;
+  --accent-foreground: #ffffff;
+  --hero-from: #7c2d12;
+  --hero-via: #ea580c;
+  --hero-to: #15803d;
+  --hero-foreground: #ffffff;
+  --hero-muted: rgb(255 255 255 / 0.85);
+  --family-glow: rgb(234 88 12 / 0.35);
+  --ring-color: rgb(234 88 12 / 0.25);
+}
+
+[data-family="design"] {
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-soft: #eef2ff;
+  --accent-foreground: #ffffff;
+  --hero-from: #0f172a;
+  --hero-via: #4338ca;
+  --hero-to: #7c3aed;
+  --hero-foreground: #ffffff;
+  --hero-muted: rgb(255 255 255 / 0.85);
+  --family-glow: rgb(99 102 241 / 0.45);
+  --ring-color: rgb(99 102 241 / 0.3);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--color-foreground);
+}
+
+.page-container {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.section-stack {
+  @apply space-y-16 py-10;
+}
+
+.family-gradient-tech {
+  background: linear-gradient(135deg, #020617 0%, #0c4a6e 50%, #164e63 100%);
+}
+.family-gradient-gaming {
+  background: linear-gradient(135deg, #090014 0%, #581c87 45%, #0e7490 100%);
+}
+.family-gradient-school {
+  background: linear-gradient(135deg, #fefce8 0%, #fef08a 50%, #fde68a 100%);
+}
+.family-gradient-office {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 60%, #cbd5e1 100%);
+}
+.family-gradient-home {
+  background: linear-gradient(135deg, #14532d 0%, #166534 55%, #854d0e 100%);
+}
+.family-gradient-beauty {
+  background: linear-gradient(135deg, #500724 0%, #9d174d 50%, #fbcfe8 100%);
+}
+.family-gradient-sport {
+  background: linear-gradient(135deg, #7c2d12 0%, #ea580c 50%, #15803d 100%);
+}
+.family-gradient-design {
+  background: linear-gradient(135deg, #0f172a 0%, #4338ca 45%, #7c3aed 100%);
+}
+
+.hero-brand {
+  background: linear-gradient(
+    135deg,
+    var(--hero-from) 0%,
+    var(--hero-via) 45%,
+    var(--hero-to) 100%
+  );
+  color: var(--hero-foreground);
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.hero-grid-tech {
+  background-image:
+    linear-gradient(rgb(6 182 212 / 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(6 182 212 / 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.hero-glow-gaming {
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 40%, rgb(217 70 239 / 0.35), transparent),
+    radial-gradient(ellipse 60% 50% at 80% 60%, rgb(34 211 238 / 0.25), transparent);
+}
+
+.hero-grid-design {
+  background-image:
+    radial-gradient(circle at 20% 30%, rgb(99 102 241 / 0.15), transparent 45%),
+    radial-gradient(circle at 80% 70%, rgb(124 58 237 / 0.2), transparent 40%),
+    linear-gradient(rgb(99 102 241 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(99 102 241 / 0.06) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px, 28px 28px;
+}
+
+.input-base {
+  @apply w-full rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3.5 py-2.5 text-sm text-[color:var(--color-foreground)] shadow-sm outline-none transition;
+  @apply placeholder:text-slate-400;
+  @apply focus:border-[color:var(--accent)] focus:ring-2 focus:ring-[color:var(--ring-color)];
+  @apply disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500;
+}
+
+.label-base {
+  @apply block text-sm font-semibold text-[color:var(--color-foreground)];
+}
+
+.control-check {
+  @apply relative inline-flex size-[1.125rem] shrink-0 cursor-pointer items-center justify-center rounded-md border-2 border-slate-300 bg-white transition;
+  @apply hover:border-[color:var(--accent)];
+  @apply focus-within:ring-2 focus-within:ring-[color:var(--ring-color)];
+}
+.control-check:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.control-check:has(input:checked)::after {
+  content: "";
+  position: absolute;
+  width: 0.35rem;
+  height: 0.6rem;
+  border: solid var(--accent-foreground);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+.control-check input {
+  @apply absolute inset-0 cursor-pointer opacity-0;
+}
+
+.control-radio {
+  @apply relative inline-flex size-[1.125rem] shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-slate-300 bg-white transition;
+  @apply hover:border-[color:var(--accent)];
+  @apply focus-within:ring-2 focus-within:ring-[color:var(--ring-color)];
+}
+.control-radio:has(input:checked) {
+  border-color: var(--accent);
+}
+.control-radio:has(input:checked)::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+.control-radio input {
+  @apply absolute inset-0 cursor-pointer opacity-0;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.text-neon {
+  text-shadow:
+    0 0 8px var(--family-glow),
+    0 0 20px var(--family-glow);
+}
+
+/* ---------------------------------------------------------------------------
+   Administration — thème cohérent avec la boutique (bleu belge / noir)
+   --------------------------------------------------------------------------- */
+
+[data-admin="true"] {
+  --admin-sidebar-bg: #0a1628;
+  --admin-sidebar-text: rgb(255 255 255 / 0.72);
+}
+
+.admin-shell {
+  background: var(--color-background);
+}
+
+.admin-sidebar {
+  background: var(--admin-sidebar-bg);
+}
+
+.admin-topbar {
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.admin-form-grid {
+  @apply grid gap-5 sm:grid-cols-2;
+}
+
+.admin-form-grid .span-2 {
+  @apply sm:col-span-2;
 }
