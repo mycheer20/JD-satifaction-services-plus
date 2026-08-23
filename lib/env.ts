@@ -1,5 +1,7 @@
 import "server-only";
 
+import { resolveSiteUrl } from "@/lib/public-env";
+
 /**
  * Server-side environment access. Importing this module from a Client Component
  * is a build error, which keeps the service-role key out of the browser bundle.
@@ -34,6 +36,6 @@ export const serverEnv = {
     );
   },
   get siteUrl() {
-    return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+    return resolveSiteUrl();
   },
 };

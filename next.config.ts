@@ -5,9 +5,17 @@ import type { NextConfig } from "next";
  * has to be allowed for `next/image`. It is derived from the same environment
  * variable the Supabase client uses, which keeps the two from drifting apart.
  */
-const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
-  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
-  : undefined;
+function supabaseImageHost(): string | undefined {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (!raw) return undefined;
+  try {
+    return new URL(raw).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
+const supabaseHost = supabaseImageHost();
 
 const nextConfig: NextConfig = {
   images: {
