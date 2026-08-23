@@ -9,12 +9,17 @@ import { Button } from "@/components/ui/button";
 import { Badge, QuantityStepper } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PriceDisplay } from "@/components/storefront/price-display";
-import { ExchangeRateBar } from "@/components/storefront/exchange-rate-bar";
 import { cn } from "@/lib/utils";
 import { StoreContactActions } from "@/components/storefront/store-contact-actions";
-import { storeContact } from "@/lib/store/contact";
+import type { StoreContactSnapshot } from "@/lib/store/contact";
 
-export function ProductPurchase({ product }: { product: ProductDetail }) {
+export function ProductPurchase({
+  product,
+  contact,
+}: {
+  product: ProductDetail;
+  contact: StoreContactSnapshot;
+}) {
   const router = useRouter();
   const { addItem } = useCart();
 
@@ -240,8 +245,8 @@ export function ProductPurchase({ product }: { product: ProductDetail }) {
           <p className="text-sm font-bold text-[color:var(--color-foreground)]">
             Une question sur ce produit ?
           </p>
-          <p className="mt-1 text-sm text-muted">{storeContact.phone}</p>
-          <StoreContactActions className="mt-3" subject={product.name} compact />
+          <p className="mt-1 text-sm text-muted">{contact.phone}</p>
+          <StoreContactActions className="mt-3" subject={product.name} contact={contact} compact />
         </div>
 
         {product.specs.some((spec) => spec.isKeySpec) ? (

@@ -12,6 +12,7 @@
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:seed": "node scripts/db-migrate.mjs --seed-only",
     "db:seed:api": "node scripts/db-seed-api.mjs",
+    "db:clean-test": "node scripts/clean-test-data.mjs",
     "admin:promote": "node scripts/promote-admin.mjs"
   },
   "dependencies": {

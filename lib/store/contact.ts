@@ -45,19 +45,35 @@ export const storeContact = {
   },
 };
 
-export function storeWhatsAppNumber(): string {
-  const raw = storeContact.whatsapp || storeContact.phone;
+export function storeWhatsAppNumber(contact?: StoreContactSnapshot): string {
+  const raw = contact?.whatsapp || contact?.phone || storeContact.whatsapp || storeContact.phone;
   return raw.replace(/\D/g, "");
 }
 
-export function storePhoneHref(): string {
-  return `tel:${storeContact.phone.replace(/\s/g, "")}`;
+export function storePhoneHref(contact?: StoreContactSnapshot): string {
+  const phone = contact?.phone ?? storeContact.phone;
+  return `tel:${phone.replace(/\s/g, "")}`;
 }
 
-export function storeWhatsAppHref(message?: string): string {
-  const base = `https://wa.me/${storeWhatsAppNumber()}`;
+export function storeWhatsAppHref(message?: string, contact?: StoreContactSnapshot): string {
+  const base = `https://wa.me/${storeWhatsAppNumber(contact)}`;
   if (!message) return base;
   return `${base}?text=${encodeURIComponent(message)}`;
+}
+
+export type StoreContactSnapshot = {
+  name: string;
+  phone: string;
+  whatsapp: string;
+};
+
+/** À passer aux Client Components — les vars NEXT_PUBLIC_* y sont figées au build. */
+export function getStoreContactSnapshot(): StoreContactSnapshot {
+  return {
+    name: storeContact.name,
+    phone: storeContact.phone,
+    whatsapp: storeContact.whatsapp,
+  };
 }
 
 export function pickupAddressLines(): string[] {

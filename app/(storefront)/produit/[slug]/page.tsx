@@ -7,6 +7,7 @@ import {
   getRelatedProducts,
 } from "@/features/catalog/queries";
 import { ProductPurchase } from "@/components/storefront/product-purchase";
+import { getStoreContactSnapshot } from "@/lib/store/contact";
 import { ProductRail } from "@/components/storefront/product-card";
 import { FamilyTheme } from "@/components/theme/family-theme";
 import { BreadcrumbsWithCurrent } from "@/components/ui/breadcrumbs";
@@ -64,7 +65,7 @@ export default async function ProductPage({ params }: PageProps<"/produit/[slug]
           current={product.name}
         />
 
-        <ProductPurchase product={product} />
+        <ProductPurchase product={product} contact={getStoreContactSnapshot()} />
 
         <div className="mt-14 grid gap-10 lg:grid-cols-[1fr_20rem]">
           <div className="space-y-10">

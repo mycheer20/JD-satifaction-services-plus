@@ -1,4 +1,10 @@
-import { storeContact, storePhoneHref, storeWhatsAppHref } from "@/lib/store/contact";
+import {
+  getStoreContactSnapshot,
+  storeContact,
+  storePhoneHref,
+  storeWhatsAppHref,
+  type StoreContactSnapshot,
+} from "@/lib/store/contact";
 import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -7,20 +13,24 @@ export function StoreContactActions({
   compact,
   whatsAppMessage,
   subject,
+  contact,
 }: {
   className?: string;
   compact?: boolean;
   whatsAppMessage?: string;
   subject?: string;
+  /** Obligatoire dans les Client Components (vars lues côté serveur au runtime). */
+  contact?: StoreContactSnapshot;
 }) {
+  const info = contact ?? getStoreContactSnapshot();
   const defaultMessage =
     whatsAppMessage ??
-    `Bonjour ${storeContact.name}, j'ai une question${subject ? ` concernant ${subject}` : ""}.`;
+    `Bonjour ${info.name}, j'ai une question${subject ? ` concernant ${subject}` : ""}.`;
 
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
       <ButtonLink
-        href={storePhoneHref()}
+        href={storePhoneHref(info)}
         variant="outline"
         size={compact ? "sm" : "md"}
         className="gap-2"
@@ -29,7 +39,7 @@ export function StoreContactActions({
         Appeler
       </ButtonLink>
       <ButtonLink
-        href={storeWhatsAppHref(defaultMessage)}
+        href={storeWhatsAppHref(defaultMessage, info)}
         variant="soft"
         size={compact ? "sm" : "md"}
         className="gap-2"
