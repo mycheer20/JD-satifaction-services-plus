@@ -5,24 +5,21 @@ import { assertDesignEditor } from "@/features/design/guards";
 import { publishAllGalleryDrafts } from "@/features/design/actions/gallery";
 import { publishSectionDraftIfExists } from "@/features/design/actions/sections";
 import {
+  galleryActionInitial,
+  type PublicationActionState,
+} from "@/features/design/actions/states";
+import {
   buildDesignPublicationSnapshot,
   getDraftMotionSettings,
   getDraftThemeTokens,
 } from "@/features/design/queries";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { MOTION_PLACEMENT } from "@/lib/design/motion-defaults";
 import { normalizeMotionSettings } from "@/lib/design/motion-css";
 import { normalizeThemeTokens } from "@/lib/design/theme-css";
 import { DESIGN_PLACEMENTS } from "@/lib/design/placements";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DesignThemeTokens, MotionSettings } from "@/types/design";
 import type { Json } from "@/types/database";
-
-export type PublicationActionState =
-  | { status: "idle" }
-  | { status: "error"; message: string }
-  | { status: "success"; message: string };
-
-export const publicationActionInitial: PublicationActionState = { status: "idle" };
 
 const STOREFRONT_PATHS = ["/", "/a-propos", "/galerie"] as const;
 const DESIGN_PATHS = [
@@ -113,7 +110,7 @@ export async function publishAllDesign(
       if (published) sectionsPublished += 1;
     }
 
-    const galleryResult = await publishAllGalleryDrafts(publicationActionInitial);
+    const galleryResult = await publishAllGalleryDrafts(galleryActionInitial);
     if (galleryResult.status === "error") {
       return galleryResult;
     }

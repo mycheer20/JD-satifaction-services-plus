@@ -5,8 +5,8 @@ import {
   clearAboutSectionDraft,
   publishAboutSection,
   saveAboutSectionDraft,
-  sectionActionInitial,
 } from "@/features/design/actions/sections";
+import { sectionActionInitial } from "@/features/design/actions/states";
 import { DEFAULT_ABOUT_CONTENT } from "@/lib/design/about-defaults";
 import type { AboutSectionDef } from "@/lib/design/about-sections";
 import type { DesignMediaRow } from "@/types/database";

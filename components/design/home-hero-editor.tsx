@@ -4,8 +4,8 @@ import { useActionState, useMemo, useState } from "react";
 import {
   publishHeroSection,
   saveHeroDraft,
-  sectionActionInitial,
 } from "@/features/design/actions/sections";
+import { sectionActionInitial } from "@/features/design/actions/states";
 import { DEFAULT_HERO_CONFIG } from "@/lib/design/defaults";
 import { SLIDE_TRANSITIONS } from "@/lib/design/placements";
 import type { DesignMediaRow } from "@/types/database";

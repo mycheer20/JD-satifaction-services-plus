@@ -13,6 +13,10 @@ import {
 } from "@/lib/design/media-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type {
+  DesignMediaMetadataState,
+  DesignMediaUploadState,
+} from "@/features/design/actions/states";
 import type { MediaUploadResult } from "@/types/design";
 
 const DESIGN_PATHS = ["/design", "/design/mediatheque"] as const;
@@ -22,16 +26,6 @@ function revalidateDesignMediaPaths() {
     revalidatePath(path);
   }
 }
-
-export type DesignMediaUploadState =
-  | { status: "idle" }
-  | { status: "error"; message: string }
-  | { status: "success"; media: MediaUploadResult };
-
-export type DesignMediaMetadataState =
-  | { status: "idle" }
-  | { status: "error"; message: string }
-  | { status: "success"; message: string };
 
 const metadataSchema = z.object({
   media_id: z.string().uuid(),

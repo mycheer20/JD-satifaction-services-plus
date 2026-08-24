@@ -2,11 +2,11 @@
 
 import { useActionState, useMemo, useState } from "react";
 import {
-  motionActionInitial,
   publishMotionSettings,
   resetMotionDraft,
   saveMotionDraft,
 } from "@/features/design/actions/motion";
+import { motionActionInitial } from "@/features/design/actions/states";
 import { DEFAULT_MOTION_SETTINGS } from "@/lib/design/motion-defaults";
 import { normalizeMotionSettings } from "@/lib/design/motion-css";
 import type { MotionSettings } from "@/types/design";

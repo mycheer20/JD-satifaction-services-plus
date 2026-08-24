@@ -15,6 +15,7 @@ import {
 import { isAboutPlacement } from "@/lib/design/about-sections";
 import { isValidPlacement, type DesignPlacementId } from "@/lib/design/placements";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { sectionActionInitial, type SectionActionState } from "@/features/design/actions/states";
 import type { AboutSectionConfig, HeroSectionConfig, PlacementImageConfig } from "@/types/design";
 import type { HeroDraftPayload } from "@/lib/design/section-validation";
 import type { DesignSlideRow, Json } from "@/types/database";
@@ -33,13 +34,6 @@ function revalidateAboutDesign() {
     revalidatePath(path);
   }
 }
-
-export type SectionActionState =
-  | { status: "idle" }
-  | { status: "error"; message: string }
-  | { status: "success"; message: string };
-
-export const sectionActionInitial: SectionActionState = { status: "idle" };
 
 async function upsertDraftSection(placement: string, config: Json, userId: string) {
   const supabase = await createSupabaseServerClient();

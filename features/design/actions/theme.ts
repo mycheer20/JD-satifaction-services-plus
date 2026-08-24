@@ -6,14 +6,8 @@ import { DEFAULT_THEME_TOKENS } from "@/lib/design/defaults";
 import { normalizeThemeTokens } from "@/lib/design/theme-css";
 import { parseThemeTokensForm } from "@/lib/design/theme-validation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { themeTokensInitialState, type ThemeTokensActionState } from "@/features/design/actions/states";
 import type { DesignThemeTokens } from "@/types/design";
-
-export type ThemeTokensActionState =
-  | { status: "idle" }
-  | { status: "error"; message: string }
-  | { status: "success"; message: string };
-
-const initialState: ThemeTokensActionState = { status: "idle" };
 
 async function upsertThemeRow(
   status: "draft" | "published",
@@ -125,5 +119,3 @@ export async function resetThemeTokensDraft(
     };
   }
 }
-
-export { initialState as themeTokensInitialState };

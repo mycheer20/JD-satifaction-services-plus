@@ -6,15 +6,9 @@ import { DEFAULT_MOTION_SETTINGS, MOTION_PLACEMENT } from "@/lib/design/motion-d
 import { normalizeMotionSettings } from "@/lib/design/motion-css";
 import { parseMotionSettingsForm } from "@/lib/design/motion-validation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { motionActionInitial, type MotionActionState } from "@/features/design/actions/states";
 import type { MotionSettings } from "@/types/design";
 import type { Json } from "@/types/database";
-
-export type MotionActionState =
-  | { status: "idle" }
-  | { status: "error"; message: string }
-  | { status: "success"; message: string };
-
-export const motionActionInitial: MotionActionState = { status: "idle" };
 
 async function upsertMotionRow(status: "draft" | "published", settings: MotionSettings, userId: string) {
   const supabase = await createSupabaseServerClient();

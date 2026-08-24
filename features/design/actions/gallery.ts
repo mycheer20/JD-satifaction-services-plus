@@ -8,6 +8,7 @@ import {
   validateGalleryItemForPublish,
 } from "@/lib/design/gallery-validation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { galleryActionInitial, type GalleryActionState } from "@/features/design/actions/states";
 
 const GALLERY_PATHS = ["/galerie", "/a-propos", "/design/galerie"] as const;
 
@@ -16,13 +17,6 @@ function revalidateGalleryPaths() {
     revalidatePath(path);
   }
 }
-
-export type GalleryActionState =
-  | { status: "idle" }
-  | { status: "error"; message: string }
-  | { status: "success"; message: string };
-
-export const galleryActionInitial: GalleryActionState = { status: "idle" };
 
 async function nextGalleryPosition(status: "draft" | "published") {
   const supabase = await createSupabaseServerClient();

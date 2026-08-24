@@ -5,8 +5,8 @@ import {
   publishThemeTokens,
   resetThemeTokensDraft,
   saveThemeTokensDraft,
-  themeTokensInitialState,
 } from "@/features/design/actions/theme";
+import { themeTokensInitialState } from "@/features/design/actions/states";
 import { DEFAULT_THEME_TOKENS } from "@/lib/design/defaults";
 import { normalizeThemeTokens } from "@/lib/design/theme-css";
 import type { DesignThemeTokens } from "@/types/design";

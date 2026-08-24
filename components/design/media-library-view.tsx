@@ -6,8 +6,8 @@ import {
   deleteDesignMedia,
   setDesignMediaActive,
   updateDesignMediaMetadata,
-  type DesignMediaMetadataState,
 } from "@/features/design/actions/media";
+import type { DesignMediaMetadataState } from "@/features/design/actions/states";
 import {
   formatMediaBytes,
   formatMediaDimensions,

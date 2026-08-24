@@ -2,10 +2,8 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import {
-  publicationActionInitial,
-  publishAllDesign,
-} from "@/features/design/actions/publication";
+import { publishAllDesign } from "@/features/design/actions/publication";
+import { publicationActionInitial } from "@/features/design/actions/states";
 import type { DesignPendingModule, DesignPublicationSummary } from "@/types/design";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";

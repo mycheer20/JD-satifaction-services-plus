@@ -4,7 +4,6 @@ import { useActionState, useMemo, useState } from "react";
 import {
   addGalleryItemDraft,
   deleteGalleryItem,
-  galleryActionInitial,
   moveGalleryItem,
   publishAllGalleryDrafts,
   publishGalleryItem,
@@ -12,6 +11,7 @@ import {
   unpublishGalleryItem,
   updateGalleryItemDraft,
 } from "@/features/design/actions/gallery";
+import { galleryActionInitial } from "@/features/design/actions/states";
 import type { GalleryEditorItem } from "@/features/design/queries";
 import { DESIGN_GALLERY_CATEGORIES } from "@/lib/design/placements";
 import { galleryCategoryLabel } from "@/lib/design/gallery-utils";

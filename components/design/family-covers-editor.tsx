@@ -5,8 +5,8 @@ import {
   clearFamilyCoverDraft,
   publishFamilyCover,
   saveFamilyCoverDraft,
-  sectionActionInitial,
 } from "@/features/design/actions/sections";
+import { sectionActionInitial } from "@/features/design/actions/states";
 import { DEFAULT_PLACEMENT_IMAGE } from "@/lib/design/defaults";
 import type { DesignPlacement } from "@/lib/design/placements";
 import { getFamilyVisual, isFamilySlug } from "@/lib/theme/families";
