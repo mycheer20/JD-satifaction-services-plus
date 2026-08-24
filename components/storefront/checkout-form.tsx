@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { useCart } from "@/features/cart/cart-context";
 import { submitOrder, type CheckoutState } from "@/features/checkout/actions";
@@ -24,12 +24,21 @@ const initialState: CheckoutState = { status: "idle" };
 export function CheckoutForm({
   paymentMethods,
   defaults,
+  isGuest = false,
 }: {
   paymentMethods: PaymentMethod[];
   defaults: { name: string; email: string; phone: string };
+  isGuest?: boolean;
 }) {
-  const { items, totals, ready } = useCart();
+  const { items, totals, ready, clear } = useCart();
   const [state, action] = useActionState(submitOrder, initialState);
+
+  useEffect(() => {
+    if (state.status === "whatsapp" && state.whatsAppUrl) {
+      clear();
+      window.location.href = state.whatsAppUrl;
+    }
+  }, [state, clear]);
 
   if (!ready) {
     return <Skeleton className="h-96" />;
@@ -55,13 +64,28 @@ export function CheckoutForm({
     })),
   );
 
+  const cartLines = JSON.stringify(
+    items.map((item) => ({
+      name: item.name,
+      variantLabel: item.variantLabel,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      currency: item.currency,
+    })),
+  );
+
   return (
     <form action={action} className="grid gap-8 lg:grid-cols-[1fr_22rem]">
       <input type="hidden" name="items" value={payload} />
+      <input type="hidden" name="cartLines" value={cartLines} />
 
       <div className="space-y-6">
         {state.status === "error" && state.message ? (
           <Alert tone="error">{state.message}</Alert>
+        ) : null}
+
+        {state.status === "whatsapp" ? (
+          <Alert tone="info">Ouverture de WhatsApp avec votre commande…</Alert>
         ) : null}
 
         <Card padding="md" className="space-y-4">
@@ -185,10 +209,12 @@ export function CheckoutForm({
         </div>
 
         <p className="text-xs leading-relaxed text-slate-500">
-          Le total définitif est calculé par le serveur à la validation.
+          {isGuest
+            ? "Sans compte, votre commande sera envoyée sur WhatsApp avec un message prérempli. Elle ne sera pas enregistrée sur le site."
+            : "Le total définitif est calculé par le serveur à la validation."}
         </p>
 
-        <SubmitButton />
+        <SubmitButton isGuest={isGuest} />
 
         <TextLink href="/panier" variant="muted" className="block text-center text-xs">
           ← Revenir au panier
@@ -198,11 +224,15 @@ export function CheckoutForm({
   );
 }
 
-function SubmitButton() {
+function SubmitButton({ isGuest }: { isGuest: boolean }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="lg" className="w-full" disabled={pending}>
-      {pending ? "Validation en cours…" : "Valider la commande"}
+      {pending
+        ? "Validation en cours…"
+        : isGuest
+          ? "Valider et envoyer sur WhatsApp"
+          : "Valider la commande"}
     </Button>
   );
 }

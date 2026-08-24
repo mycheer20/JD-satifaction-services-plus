@@ -4,7 +4,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/features/auth/session";
+import { buildGuestWhatsAppMessage } from "@/features/checkout/guest-whatsapp";
 import { getPaymentProvider, isCheckoutPaymentProvider } from "@/features/payments/provider";
+import { storeWhatsAppHref } from "@/lib/store/contact";
 import { publicEnv } from "@/lib/public-env";
 
 /**
@@ -23,6 +25,14 @@ const lineSchema = z.object({
   quantity: z.number().int().min(1).max(99),
 });
 
+const cartLineDisplaySchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  variantLabel: z.string().trim().max(120).optional(),
+  quantity: z.number().int().min(1).max(99),
+  unitPrice: z.number().min(0),
+  currency: z.string().trim().min(3).max(3),
+});
+
 const checkoutSchema = z.object({
   name: z.string().trim().min(2, "Le nom est requis.").max(120),
   email: z.string().trim().email("Adresse e-mail invalide."),
@@ -38,9 +48,10 @@ const checkoutSchema = z.object({
 });
 
 export interface CheckoutState {
-  status: "idle" | "error";
+  status: "idle" | "error" | "whatsapp";
   message?: string;
   fieldErrors?: Record<string, string>;
+  whatsAppUrl?: string;
 }
 
 export async function submitOrder(
@@ -48,8 +59,10 @@ export async function submitOrder(
   formData: FormData,
 ): Promise<CheckoutState> {
   let rawItems: unknown;
+  let rawCartLines: unknown;
   try {
     rawItems = JSON.parse(String(formData.get("items") ?? "[]"));
+    rawCartLines = JSON.parse(String(formData.get("cartLines") ?? "[]"));
   } catch {
     return { status: "error", message: "Panier illisible." };
   }
@@ -103,6 +116,33 @@ export async function submitOrder(
   });
 
   const user = await getSessionUser();
+
+  if (!user) {
+    const cartLinesParsed = z.array(cartLineDisplaySchema).safeParse(rawCartLines);
+    if (!cartLinesParsed.success || cartLinesParsed.data.length === 0) {
+      return { status: "error", message: "Panier illisible." };
+    }
+
+    const message = buildGuestWhatsAppMessage({
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      address: input.address,
+      city: input.city,
+      region: input.region,
+      postalCode: input.postalCode,
+      note: input.note,
+      couponCode: input.couponCode,
+      paymentMethodLabel: provider.label,
+      lines: cartLinesParsed.data,
+    });
+
+    return {
+      status: "whatsapp",
+      whatsAppUrl: storeWhatsAppHref(message),
+    };
+  }
+
   const supabase = createSupabaseAdminClient();
 
   const shippingAddress = {

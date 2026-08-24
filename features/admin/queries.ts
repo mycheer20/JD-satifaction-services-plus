@@ -202,7 +202,7 @@ export async function listAdminOrders(status?: string) {
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("orders")
-    .select("id, reference, status, customer_name, customer_email, total, currency, created_at")
+    .select("id, reference, status, customer_name, customer_email, customer_phone, total, currency, created_at")
     .order("created_at", { ascending: false })
     .limit(200);
 
@@ -437,6 +437,8 @@ export type AdminOrderDetail = {
   status: OrderStatus;
   customer_name: string;
   customer_email: string;
+  customer_phone: string | null;
+  shipping_address: unknown;
   customer_note: string | null;
   admin_note: string | null;
   subtotal: number;

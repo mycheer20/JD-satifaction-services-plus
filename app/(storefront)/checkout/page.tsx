@@ -22,7 +22,7 @@ export default async function CheckoutPage() {
         description={
           user
             ? "Vos informations sont pré-remplies depuis votre compte."
-            : "Commandez sans compte — renseignez simplement vos coordonnées."
+            : "Sans compte, finalisez votre commande sur WhatsApp avec un message prérempli — rien n'est enregistré sur le site."
         }
         className="mb-8"
       />
@@ -31,6 +31,7 @@ export default async function CheckoutPage() {
 
       <CheckoutForm
         paymentMethods={paymentMethods}
+        isGuest={!user}
         defaults={{
           name: user?.fullName ?? "",
           email: user?.email ?? "",

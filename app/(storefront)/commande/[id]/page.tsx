@@ -18,6 +18,10 @@ import { TextLink } from "@/components/ui/link";
 import { PriceDisplay } from "@/components/storefront/price-display";
 import { ExchangeRateBar } from "@/components/storefront/exchange-rate-bar";
 import { ClearCartOnMount } from "@/components/storefront/clear-cart";
+import {
+  formatOrderShippingLines,
+  parseOrderShippingAddress,
+} from "@/lib/orders/address";
 import { formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -35,7 +39,8 @@ export default async function OrderPage({
 
   const isNew = query.nouvelle === "1";
   const proofSent = query.preuve === "1";
-  const shipping = order.shipping_address as Record<string, string>;
+  const shipping = parseOrderShippingAddress(order.shipping_address);
+  const shippingLines = formatOrderShippingLines(shipping);
   const pendingPayments = order.payments.filter((p) => p.status === "pending");
   const paymentConfirmed = orderHasConfirmedPayment(order.payments);
 
@@ -164,12 +169,22 @@ export default async function OrderPage({
           <address className="text-sm not-italic leading-relaxed text-slate-600">
             {order.customer_name}
             <br />
-            {shipping?.line1}
-            <br />
-            {[shipping?.postal_code, shipping?.city].filter(Boolean).join(" ")}
-            <br />
+            {shippingLines.map((line) => (
+              <span key={line}>
+                {line}
+                <br />
+              </span>
+            ))}
             {order.customer_phone}
           </address>
+          {order.customer_note ? (
+            <p className="mt-3 text-sm text-slate-600">
+              <span className="font-semibold text-[color:var(--color-foreground)]">
+                Instructions :
+              </span>{" "}
+              {order.customer_note}
+            </p>
+          ) : null}
         </Card>
 
         <Card padding="md">

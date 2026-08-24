@@ -56,6 +56,9 @@ export default async function AdminOrdersPage({
                   <AdminTd>
                     <p>{order.customer_name}</p>
                     <p className="text-xs text-muted">{order.customer_email}</p>
+                    {order.customer_phone ? (
+                      <p className="text-xs text-muted">{order.customer_phone}</p>
+                    ) : null}
                   </AdminTd>
                   <AdminTd>
                     <StatusBadge

@@ -13,6 +13,11 @@ import { updateOrderStatus } from "@/features/admin/actions/orders";
 import { AdminPaymentsCard } from "@/components/admin/admin-payments-card";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
 import { orderHasConfirmedPayment } from "@/features/orders/payment-rules";
+import {
+  formatOrderShippingBlock,
+  hasOrderShippingAddress,
+  parseOrderShippingAddress,
+} from "@/lib/orders/address";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import type { OrderStatus } from "@/types/database";
@@ -27,13 +32,15 @@ export default async function AdminOrderDetailPage({
   if (!order) notFound();
 
   const paymentConfirmed = orderHasConfirmedPayment(order.payments ?? []);
+  const shipping = parseOrderShippingAddress(order.shipping_address);
+  const shippingLines = formatOrderShippingBlock(shipping);
 
   return (
     <>
       <AdminFlash searchParams={query} />
       <AdminPageHeader
         title={`Commande ${order.reference}`}
-        description={`${order.customer_name} · ${order.customer_email}`}
+        description={order.customer_name}
         actions={
           <StatusBadge
             label={ORDER_STATUS_LABELS[order.status as OrderStatus]}
@@ -67,13 +74,57 @@ export default async function AdminOrderDetailPage({
 
           {order.customer_note ? (
             <Card padding="md">
-              <h2 className="mb-2 font-bold">Note client</h2>
+              <h2 className="mb-2 font-bold">Instructions de livraison</h2>
               <p className="text-sm text-muted">{order.customer_note}</p>
             </Card>
           ) : null}
         </div>
 
         <aside className="space-y-6">
+          <Card padding="md" className="space-y-3">
+            <h2 className="font-bold">Client & livraison</h2>
+            <dl className="space-y-2 text-sm">
+              <div>
+                <dt className="text-muted">Nom</dt>
+                <dd className="font-semibold">{order.customer_name}</dd>
+              </div>
+              <div>
+                <dt className="text-muted">E-mail</dt>
+                <dd>
+                  <a
+                    href={`mailto:${order.customer_email}`}
+                    className="font-medium text-[color:var(--accent)] hover:underline"
+                  >
+                    {order.customer_email}
+                  </a>
+                </dd>
+              </div>
+              {order.customer_phone ? (
+                <div>
+                  <dt className="text-muted">Téléphone</dt>
+                  <dd>
+                    <a
+                      href={`tel:${order.customer_phone.replace(/\s/g, "")}`}
+                      className="font-medium text-[color:var(--accent)] hover:underline"
+                    >
+                      {order.customer_phone}
+                    </a>
+                  </dd>
+                </div>
+              ) : null}
+              <div>
+                <dt className="text-muted">Adresse</dt>
+                <dd className="whitespace-pre-line font-medium">
+                  {hasOrderShippingAddress(shipping) ? (
+                    shippingLines
+                  ) : (
+                    <span className="text-muted">Non renseignée</span>
+                  )}
+                </dd>
+              </div>
+            </dl>
+          </Card>
+
           <Card padding="md" className="space-y-4">
             <h2 className="font-bold">Statut commande</h2>
             <OrderStatusForm
