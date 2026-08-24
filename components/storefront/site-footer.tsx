@@ -85,6 +85,7 @@ export async function SiteFooter() {
           <ul className="mt-4 space-y-2.5">
             {[
               { href: "/a-propos", label: "À propos" },
+              { href: "/galerie", label: "Galerie" },
               { href: "/compte", label: "Mon compte" },
               { href: "/compte/notifications", label: "Notifications" },
               { href: "/compte/commandes", label: "Mes commandes" },

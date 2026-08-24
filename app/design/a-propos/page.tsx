@@ -37,11 +37,11 @@ export default async function DesignAboutPage() {
           {publishedCount > 0
             ? `${publishedCount} section${publishedCount > 1 ? "s" : ""} personnalisée${publishedCount > 1 ? "s" : ""} publiée${publishedCount > 1 ? "s" : ""}.`
             : "Aucune section publiée : la page utilise le contenu codé par défaut."}{" "}
-          La galerie photo publique se gère via le module{" "}
+          La galerie photo publique se gère dans le module{" "}
           <Link href="/design/galerie" className="font-semibold text-[color:var(--accent)]">
             Galerie entreprise
-          </Link>{" "}
-          (Phase 9).
+          </Link>
+          .
         </p>
       </Card>
 

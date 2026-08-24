@@ -419,3 +419,47 @@ export async function getPublishedAboutPageData(): Promise<{
 
   return { sections, gallery };
 }
+
+export type GalleryEditorItem = {
+  id: string;
+  mediaId: string;
+  category: ResolvedGalleryItem["category"];
+  title: string | null;
+  description: string | null;
+  position: number;
+  status: DesignPublishStatus;
+  isActive: boolean;
+  media: DesignMediaRow | null;
+};
+
+export const getGalleryEditorItems = cache(async (): Promise<GalleryEditorItem[]> => {
+  const supabase = await createSupabaseServerClient();
+  const { data: rows } = await supabase
+    .from("design_gallery_items")
+    .select("*")
+    .order("status")
+    .order("position");
+
+  const items = rows ?? [];
+  const mediaMap = await loadMediaMap(items.map((row) => row.media_id));
+
+  return items.map((row) => ({
+    id: row.id,
+    mediaId: row.media_id,
+    category: row.category as ResolvedGalleryItem["category"],
+    title: row.title,
+    description: row.description,
+    position: row.position,
+    status: row.status as DesignPublishStatus,
+    isActive: row.is_active,
+    media: mediaMap.get(row.media_id) ?? null,
+  }));
+});
+
+export async function getPublishedGalleryItemsByCategory(
+  category?: string,
+): Promise<ResolvedGalleryItem[]> {
+  const items = await getPublishedGalleryItems();
+  if (!category || category === "all") return items;
+  return items.filter((item) => item.category === category);
+}

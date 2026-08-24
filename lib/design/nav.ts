@@ -57,8 +57,6 @@ export const DESIGN_NAV: DesignNavSection[] = [
         label: "Galerie entreprise",
         description: "Photos publiques",
         icon: "📸",
-        disabled: true,
-        badge: "Phase 9",
       },
     ],
   },

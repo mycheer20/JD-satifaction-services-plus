@@ -1,14 +1,14 @@
-import Image from "next/image";
 import Link from "next/link";
 import { getPublishedAboutPageData } from "@/features/design/queries";
 import { storeContact, storePhoneHref, storeWhatsAppHref } from "@/lib/store/contact";
 import { familyVisuals } from "@/lib/theme/families";
 import { PlacementImage } from "@/components/storefront/placement-image";
+import { GalleryGrid } from "@/components/storefront/gallery-grid";
 import { BreadcrumbsWithCurrent } from "@/components/ui/breadcrumbs";
 import { SectionLabel } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
-import type { AboutHighlightItem, ResolvedAboutSection, ResolvedGalleryItem } from "@/types/design";
+import type { AboutHighlightItem, ResolvedAboutSection } from "@/types/design";
 
 function sectionMap(sections: ResolvedAboutSection[]) {
   return new Map(sections.map((section) => [section.id, section]));
@@ -43,41 +43,6 @@ function HighlightGrid({ items }: { items?: AboutHighlightItem[] }) {
         </Card>
       ))}
     </div>
-  );
-}
-
-function AboutGallery({ items }: { items: ResolvedGalleryItem[] }) {
-  if (items.length === 0) return null;
-
-  return (
-    <section className="space-y-6">
-      <CardHeader
-        title="Galerie"
-        description="Quelques images de notre entreprise, de la boutique et de nos activités."
-      />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((item) => (
-          <figure
-            key={item.id}
-            className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-muted)]"
-          >
-            <Image
-              src={item.publicUrl}
-              alt={item.altText}
-              fill
-              sizes="(max-width:640px) 100vw, 33vw"
-              className="object-cover transition duration-500 group-hover:scale-105"
-              unoptimized={item.publicUrl.endsWith(".gif")}
-            />
-            {item.title ? (
-              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-sm font-semibold text-white">
-                {item.title}
-              </figcaption>
-            ) : null}
-          </figure>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -206,7 +171,20 @@ export async function AboutPageView() {
           ) : null}
         </section>
 
-        <AboutGallery items={gallery} />
+        {gallery.length > 0 ? (
+          <section className="space-y-6">
+            <CardHeader
+              title="Galerie"
+              description="Quelques images de notre entreprise, de la boutique et de nos activités."
+              action={
+                <ButtonLink href="/galerie" variant="outline" size="sm">
+                  Voir toute la galerie
+                </ButtonLink>
+              }
+            />
+            <GalleryGrid items={gallery} limit={6} />
+          </section>
+        ) : null}
 
         <section className="relative overflow-hidden rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-12 shadow-md sm:px-10">
           {cta.imageUrl ? (
