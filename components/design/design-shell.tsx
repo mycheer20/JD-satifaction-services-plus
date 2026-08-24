@@ -80,8 +80,11 @@ export function DesignShell({
                 Administration
               </ButtonLink>
             ) : null}
+            <ButtonLink href="/?preview=draft" variant="primary" size="sm">
+              Aperçu brouillon
+            </ButtonLink>
             <ButtonLink href="/" variant="outline" size="sm">
-              Voir la boutique
+              Boutique live
             </ButtonLink>
           </div>
         </header>

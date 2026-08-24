@@ -20,6 +20,36 @@ export type MotionSettings = {
   scrollReveal: boolean;
 };
 
+export type DesignPublicationSnapshot = {
+  version: 1;
+  publishedAt: string;
+  theme: DesignThemeTokens;
+  motion: MotionSettings;
+  sections: {
+    placement: string;
+    slideCount: number;
+  }[];
+  gallery: {
+    publishedCount: number;
+    draftCount: number;
+  };
+};
+
+export type DesignPendingModule = {
+  id: string;
+  label: string;
+  href: string;
+  pending: boolean;
+  detail?: string;
+};
+
+export type DesignPublicationSummary = {
+  id: string;
+  publishedAt: string;
+  notes: string | null;
+  publishedByLabel: string | null;
+};
+
 export type DesignThemeTokens = {
   primary: string;
   secondary: string;

@@ -1,11 +1,12 @@
 import { ConfigurableHero } from "@/components/design/configurable-hero";
-import { resolvePlacementMedia } from "@/features/design/queries";
+import { resolvePlacementMedia, getDesignPreviewOptions } from "@/features/design/queries";
 import { ButtonLink } from "@/components/ui/button";
 import { SectionLabel } from "@/components/ui/badge";
 import { publicEnv } from "@/lib/public-env";
 
 export async function StorefrontHomeHero() {
-  const media = await resolvePlacementMedia("home.hero");
+  const { previewDraft } = await getDesignPreviewOptions();
+  const media = await resolvePlacementMedia("home.hero", { previewDraft });
 
   const content = <HomeHeroContent />;
 

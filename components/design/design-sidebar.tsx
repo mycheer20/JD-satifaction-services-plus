@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { DesignNavItem, DesignNavSection } from "@/lib/design/nav";
+import {
+  DESIGN_NAV_ACCENTS,
+  type DesignNavAccent,
+  type DesignNavItem,
+  type DesignNavSection,
+} from "@/lib/design/nav";
 import { cn } from "@/lib/utils";
 
 export function DesignSidebar({
@@ -21,7 +26,7 @@ export function DesignSidebar({
           <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
             {section.title}
           </p>
-          <ul className="space-y-0.5">
+          <ul className="space-y-1">
             {section.items.map((item) => (
               <DesignNavLink
                 key={item.href}
@@ -51,34 +56,45 @@ function DesignNavLink({
   active: boolean;
   onNavigate?: () => void;
 }) {
+  const accent = item.accent ?? "violet";
+  const styles = DESIGN_NAV_ACCENTS[accent as DesignNavAccent];
+
   const content = (
     <>
-      <span className="text-base" aria-hidden>
+      <span
+        className={cn(
+          "flex size-9 shrink-0 items-center justify-center rounded-xl text-base shadow-lg",
+          styles.icon,
+        )}
+        aria-hidden
+      >
         {item.icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate">{item.label}</span>
+        <span className="flex items-center gap-2">
+          <span className="block truncate">{item.label}</span>
+          {item.badge ? (
+            <span className="shrink-0 rounded-full bg-gradient-to-r from-fuchsia-500 to-orange-400 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow-sm">
+              {item.badge}
+            </span>
+          ) : null}
+        </span>
         {item.description ? (
-          <span className="mt-0.5 block truncate text-[11px] font-normal text-white/45">
+          <span className="mt-0.5 block truncate text-[11px] font-normal text-white/50">
             {item.description}
           </span>
         ) : null}
       </span>
-      {item.badge ? (
-        <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-white/70">
-          {item.badge}
-        </span>
-      ) : null}
     </>
   );
 
   const className = cn(
-    "flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition",
+    "flex items-start gap-3 rounded-xl px-2.5 py-2.5 text-sm font-semibold transition duration-200",
     item.disabled
       ? "cursor-not-allowed text-white/35"
       : active
-        ? "bg-white/12 text-white shadow-inner"
-        : "text-white/75 hover:bg-white/8 hover:text-white",
+        ? cn("text-white shadow-inner", styles.active)
+        : "text-white/80 hover:bg-white/8 hover:text-white",
   );
 
   if (item.disabled) {

@@ -16,7 +16,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/badge";
 import { StorefrontHomeHero } from "@/components/storefront/home-hero";
 import { MotionReveal } from "@/components/storefront/motion-reveal";
-import { getPublishedFamilyCovers } from "@/features/design/queries";
+import { getPublishedFamilyCovers, getDesignPreviewOptions } from "@/features/design/queries";
 
 export default function HomePage() {
   return (
@@ -90,9 +90,10 @@ async function HomeSectionBlock({ section }: { section: HomeSection }) {
 }
 
 async function FamiliesGrid() {
+  const { previewDraft } = await getDesignPreviewOptions();
   const [families, covers] = await Promise.all([
     getFamilyTree(),
-    getPublishedFamilyCovers(),
+    getPublishedFamilyCovers({ previewDraft }),
   ]);
 
   return (

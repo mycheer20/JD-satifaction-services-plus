@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getPublishedGalleryItemsByCategory } from "@/features/design/queries";
+import { getPublishedGalleryItemsByCategory, getDesignPreviewOptions } from "@/features/design/queries";
 import { DESIGN_GALLERY_CATEGORIES } from "@/lib/design/placements";
 import { galleryCategoryLabel, isGalleryCategory } from "@/lib/design/gallery-utils";
 import { GalleryGrid } from "@/components/storefront/gallery-grid";
@@ -27,7 +27,11 @@ export default async function GalleryPage({
 }) {
   const params = await searchParams;
   const category = parseCategory(typeof params.categorie === "string" ? params.categorie : undefined);
-  const items = await getPublishedGalleryItemsByCategory(category === "all" ? undefined : category);
+  const { previewDraft } = await getDesignPreviewOptions();
+  const items = await getPublishedGalleryItemsByCategory(
+    category === "all" ? undefined : category,
+    { previewDraft },
+  );
 
   return (
     <div className="page-container pb-16">

@@ -8,6 +8,7 @@ import { ABOUT_PAGE_SECTIONS, type AboutSectionId } from "@/lib/design/about-sec
 import { normalizeThemeTokens, themeTokensEqual } from "@/lib/design/theme-css";
 import { DEFAULT_MOTION_SETTINGS, MOTION_PLACEMENT } from "@/lib/design/motion-defaults";
 import { normalizeMotionSettings, motionSettingsEqual } from "@/lib/design/motion-css";
+import { getDesignPreviewMode, getDesignPreviewOptions } from "@/lib/design/preview";
 import { isValidPlacement, DESIGN_PLACEMENTS } from "@/lib/design/placements";
 import type { SlideTransition } from "@/lib/design/placements";
 import type {
@@ -22,6 +23,9 @@ import type {
   SectionEditorView,
   AboutSectionConfig,
   MotionSettings,
+  DesignPublicationSnapshot,
+  DesignPendingModule,
+  DesignPublicationSummary,
 } from "@/types/design";
 import type {
   DesignMediaRow,
@@ -344,14 +348,16 @@ export const getFamilyPlacementEditorStates = cache(async () => {
   return entries;
 });
 
-export async function getPublishedFamilyCovers(): Promise<Map<string, ResolvedPlacementMedia>> {
+export async function getPublishedFamilyCovers(options?: {
+  previewDraft?: boolean;
+}): Promise<Map<string, ResolvedPlacementMedia>> {
   const map = new Map<string, ResolvedPlacementMedia>();
   const familyPlacements = DESIGN_PLACEMENTS.filter((p) => p.familySlug);
 
   await Promise.all(
     familyPlacements.map(async (p) => {
       if (!p.familySlug) return;
-      const media = await resolvePlacementMedia(p.id);
+      const media = await resolvePlacementMedia(p.id, options);
       if (media) map.set(p.familySlug, media);
     }),
   );
@@ -370,14 +376,32 @@ function mergeAboutSectionContent(sectionId: AboutSectionId, config?: AboutSecti
   };
 }
 
-async function resolveAboutSection(sectionId: AboutSectionId): Promise<ResolvedAboutSection> {
+async function resolveAboutSection(
+  sectionId: AboutSectionId,
+  options?: { previewDraft?: boolean },
+): Promise<ResolvedAboutSection> {
   const def = ABOUT_PAGE_SECTIONS.find((section) => section.id === sectionId)!;
+  const status: DesignPublishStatus = options?.previewDraft ? "draft" : "published";
+
+  const supabase = await createSupabaseServerClient();
+  const { data: sectionRow } = await supabase
+    .from("design_section_configs")
+    .select("*")
+    .eq("placement", def.placement)
+    .eq("status", status)
+    .maybeSingle();
+
   const [published, media] = await Promise.all([
-    getPublishedSectionConfig(def.placement),
-    def.supportsImage ? resolvePlacementMedia(def.placement) : Promise.resolve(null),
+    options?.previewDraft
+      ? Promise.resolve(sectionRow)
+      : getPublishedSectionConfig(def.placement),
+    def.supportsImage
+      ? resolvePlacementMedia(def.placement, options)
+      : Promise.resolve(null),
   ]);
 
-  const config = published?.config as AboutSectionConfig | undefined;
+  const configSource = options?.previewDraft ? sectionRow : published;
+  const config = configSource?.config as AboutSectionConfig | undefined;
   const merged = mergeAboutSectionContent(sectionId, config);
   const imageConfig = { ...DEFAULT_PLACEMENT_IMAGE, ...config } as AboutSectionConfig;
 
@@ -389,7 +413,9 @@ async function resolveAboutSection(sectionId: AboutSectionId): Promise<ResolvedA
     overlayOpacity:
       media?.overlayOpacity ?? imageConfig.overlayOpacity ?? DEFAULT_PLACEMENT_IMAGE.overlayOpacity!,
     imagePosition: media?.imagePosition ?? imageConfig.imagePosition ?? "center",
-    hasPublishedOverride: Boolean(published && (media || published.config)),
+    hasPublishedOverride: Boolean(
+      configSource && (media || configSource.config),
+    ),
   };
 }
 
@@ -411,13 +437,17 @@ export const getAboutSectionEditorStates = cache(async () => {
   return entries;
 });
 
-export async function getPublishedAboutPageData(): Promise<{
+export async function getPublishedAboutPageData(options?: {
+  previewDraft?: boolean;
+}): Promise<{
   sections: ResolvedAboutSection[];
   gallery: ResolvedGalleryItem[];
 }> {
   const [sections, gallery] = await Promise.all([
-    Promise.all(ABOUT_PAGE_SECTIONS.map((section) => resolveAboutSection(section.id))),
-    getPublishedGalleryItems(),
+    Promise.all(
+      ABOUT_PAGE_SECTIONS.map((section) => resolveAboutSection(section.id, options)),
+    ),
+    getGalleryItemsForStorefront(options),
   ]);
 
   return { sections, gallery };
@@ -461,10 +491,46 @@ export const getGalleryEditorItems = cache(async (): Promise<GalleryEditorItem[]
 
 export async function getPublishedGalleryItemsByCategory(
   category?: string,
+  options?: { previewDraft?: boolean },
 ): Promise<ResolvedGalleryItem[]> {
-  const items = await getPublishedGalleryItems();
+  const items = await getGalleryItemsForStorefront(options);
   if (!category || category === "all") return items;
   return items.filter((item) => item.category === category);
+}
+
+export async function getGalleryItemsForStorefront(options?: {
+  previewDraft?: boolean;
+}): Promise<ResolvedGalleryItem[]> {
+  if (!options?.previewDraft) {
+    return getPublishedGalleryItems();
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: items } = await supabase
+    .from("design_gallery_items")
+    .select("*")
+    .eq("is_active", true)
+    .in("status", ["published", "draft"])
+    .order("status")
+    .order("position");
+
+  const rows = items ?? [];
+  const mediaMap = await loadMediaMap(rows.map((r) => r.media_id));
+
+  return rows
+    .map((row) => {
+      const media = mediaMap.get(row.media_id);
+      if (!media?.is_active) return null;
+      return {
+        id: row.id,
+        publicUrl: media.public_url,
+        altText: media.alt_text?.trim() || row.title?.trim() || media.display_name,
+        title: row.title,
+        description: row.description,
+        category: row.category as ResolvedGalleryItem["category"],
+      };
+    })
+    .filter((item): item is ResolvedGalleryItem => item !== null);
 }
 
 export type MotionSettingsSource = "default" | "published" | "draft";
@@ -517,3 +583,217 @@ export const getDraftMotionSettings = cache(async (): Promise<MotionSettings> =>
 
   return normalizeMotionSettings(data.config as Partial<MotionSettings>);
 });
+
+export async function getStorefrontThemeState(): Promise<ResolvedThemeTokens> {
+  const previewDraft = (await getDesignPreviewMode()) === "draft";
+  if (!previewDraft) {
+    return getPublishedThemeTokensState();
+  }
+
+  const tokens = await getDraftThemeTokens();
+  return {
+    tokens,
+    source: "draft",
+    hasPublishedOverride: true,
+  };
+}
+
+export async function getStorefrontMotionSettingsState(): Promise<ResolvedMotionSettings> {
+  const previewDraft = (await getDesignPreviewMode()) === "draft";
+  if (!previewDraft) {
+    return getPublishedMotionSettingsState();
+  }
+
+  const settings = await getDraftMotionSettings();
+  return {
+    settings,
+    source: "draft",
+    hasPublishedOverride: true,
+  };
+}
+
+function sectionViewDiffers(
+  draft: SectionEditorView | null,
+  published: SectionEditorView | null,
+): boolean {
+  if (!draft) return false;
+  if (!published) return Boolean(draft.slides.length || Object.keys(draft.config).length);
+  return (
+    JSON.stringify(draft.config) !== JSON.stringify(published.config) ||
+    JSON.stringify(
+      draft.slides.map((s) => ({
+        mediaId: s.mediaId,
+        position: s.position,
+        altText: s.altText,
+      })),
+    ) !==
+      JSON.stringify(
+        published.slides.map((s) => ({
+          mediaId: s.mediaId,
+          position: s.position,
+          altText: s.altText,
+        })),
+      )
+  );
+}
+
+export const getDesignPendingModules = cache(async (): Promise<DesignPendingModule[]> => {
+  const supabase = await createSupabaseServerClient();
+
+  const [
+    draftTheme,
+    publishedThemeState,
+    draftMotion,
+    publishedMotionState,
+    heroState,
+    familyStates,
+    aboutStates,
+    galleryDrafts,
+  ] = await Promise.all([
+    getDraftThemeTokens(),
+    getPublishedThemeTokensState(),
+    getDraftMotionSettings(),
+    getPublishedMotionSettingsState(),
+    getHeroSectionEditorState(),
+    getFamilyPlacementEditorStates(),
+    getAboutSectionEditorStates(),
+    supabase
+      .from("design_gallery_items")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "draft")
+      .eq("is_active", true),
+  ]);
+
+  const themePending = !themeTokensEqual(draftTheme, publishedThemeState.tokens);
+  const motionPending = !motionSettingsEqual(draftMotion, publishedMotionState.settings);
+  const heroPending = sectionViewDiffers(heroState.draft, heroState.published);
+  const familiesPending = familyStates.filter((entry) =>
+    sectionViewDiffers(entry.draft, entry.published),
+  ).length;
+  const aboutPending = aboutStates.filter((entry) =>
+    sectionViewDiffers(entry.draft, entry.published),
+  ).length;
+  const galleryPending = galleryDrafts.count ?? 0;
+
+  return [
+    {
+      id: "theme",
+      label: "Apparence & couleurs",
+      href: "/design/apparence",
+      pending: themePending,
+      detail: themePending ? "Tokens modifiés" : undefined,
+    },
+    {
+      id: "motion",
+      label: "Animations",
+      href: "/design/animations",
+      pending: motionPending,
+      detail: motionPending ? "Paramètres modifiés" : undefined,
+    },
+    {
+      id: "home",
+      label: "Page d'accueil",
+      href: "/design/accueil",
+      pending: heroPending || familiesPending > 0,
+      detail:
+        heroPending && familiesPending > 0
+          ? "Hero + familles"
+          : heroPending
+            ? "Hero modifié"
+            : familiesPending > 0
+              ? `${familiesPending} couverture${familiesPending > 1 ? "s" : ""}`
+              : undefined,
+    },
+    {
+      id: "about",
+      label: "Page À propos",
+      href: "/design/a-propos",
+      pending: aboutPending > 0,
+      detail: aboutPending > 0 ? `${aboutPending} section${aboutPending > 1 ? "s" : ""}` : undefined,
+    },
+    {
+      id: "gallery",
+      label: "Galerie entreprise",
+      href: "/design/galerie",
+      pending: galleryPending > 0,
+      detail: galleryPending > 0 ? `${galleryPending} photo${galleryPending > 1 ? "s" : ""}` : undefined,
+    },
+  ];
+});
+
+export async function buildDesignPublicationSnapshot(): Promise<DesignPublicationSnapshot> {
+  const supabase = await createSupabaseServerClient();
+  const [theme, motion, sectionPlacements, galleryPublished, galleryDraft] = await Promise.all([
+    getDraftThemeTokens(),
+    getDraftMotionSettings(),
+    DESIGN_PLACEMENTS.filter((p) => p.id !== "site.motion"),
+    supabase
+      .from("design_gallery_items")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "published")
+      .eq("is_active", true),
+    supabase
+      .from("design_gallery_items")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "draft")
+      .eq("is_active", true),
+  ]);
+
+  const sections = await Promise.all(
+    sectionPlacements.map(async (placement) => {
+      const view = await loadSectionEditorView(placement.id, "draft");
+      return {
+        placement: placement.id,
+        slideCount: view?.slides.length ?? 0,
+      };
+    }),
+  );
+
+  return {
+    version: 1,
+    publishedAt: new Date().toISOString(),
+    theme,
+    motion,
+    sections,
+    gallery: {
+      publishedCount: galleryPublished.count ?? 0,
+      draftCount: galleryDraft.count ?? 0,
+    },
+  };
+}
+
+export const getDesignPublicationHistory = cache(
+  async (limit = 8): Promise<DesignPublicationSummary[]> => {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase
+      .from("design_publications")
+      .select("id, published_at, notes, published_by")
+      .order("published_at", { ascending: false })
+      .limit(limit);
+
+    if (!data?.length) return [];
+
+    const userIds = [...new Set(data.map((row) => row.published_by).filter(Boolean))] as string[];
+    const nameMap = new Map<string, string>();
+
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("user_profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+
+      for (const profile of profiles ?? []) {
+        if (profile.full_name) nameMap.set(profile.id, profile.full_name);
+      }
+    }
+
+    return data.map((row) => ({
+      id: row.id,
+      publishedAt: row.published_at,
+      notes: row.notes,
+      publishedByLabel: row.published_by ? nameMap.get(row.published_by) ?? null : null,
+    }));
+  },
+);
+
+export { getDesignPreviewMode, getDesignPreviewOptions };

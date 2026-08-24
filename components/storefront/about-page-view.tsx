@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPublishedAboutPageData } from "@/features/design/queries";
+import { getPublishedAboutPageData, getDesignPreviewOptions } from "@/features/design/queries";
 import { storeContact, storePhoneHref, storeWhatsAppHref } from "@/lib/store/contact";
 import { familyVisuals } from "@/lib/theme/families";
 import { PlacementImage } from "@/components/storefront/placement-image";
@@ -47,7 +47,8 @@ function HighlightGrid({ items }: { items?: AboutHighlightItem[] }) {
 }
 
 export async function AboutPageView() {
-  const { sections, gallery } = await getPublishedAboutPageData();
+  const { previewDraft } = await getDesignPreviewOptions();
+  const { sections, gallery } = await getPublishedAboutPageData({ previewDraft });
   const map = sectionMap(sections);
   const hero = map.get("hero")!;
   const presentation = map.get("presentation")!;

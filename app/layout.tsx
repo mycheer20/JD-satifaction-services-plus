@@ -4,9 +4,10 @@ import { DesignThemeStyles } from "@/components/design/design-theme-styles";
 import { DesignMotionStyles } from "@/components/design/design-motion-styles";
 import { CartProvider } from "@/features/cart/cart-context";
 import {
-  getPublishedMotionSettingsState,
-  getPublishedThemeTokensState,
+  getStorefrontMotionSettingsState,
+  getStorefrontThemeState,
 } from "@/features/design/queries";
+import { isDesignPreviewActive } from "@/lib/design/preview";
 import { motionSettingsToDataAttributes } from "@/lib/design/motion-css";
 import { publicEnv } from "@/lib/public-env";
 import "./globals.css";
@@ -32,12 +33,15 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const [themeState, motionState] = await Promise.all([
-    getPublishedThemeTokensState(),
-    getPublishedMotionSettingsState(),
+  const [themeState, motionState, previewDraft] = await Promise.all([
+    getStorefrontThemeState(),
+    getStorefrontMotionSettingsState(),
+    isDesignPreviewActive(),
   ]);
 
   const motionAttrs = motionSettingsToDataAttributes(motionState.settings);
+  const injectTheme = themeState.hasPublishedOverride || previewDraft;
+  const injectMotion = motionState.hasPublishedOverride || previewDraft;
 
   return (
     <html
@@ -46,12 +50,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       {...motionAttrs}
     >
       <body className="flex min-h-full flex-col bg-[color:var(--color-background)] text-[color:var(--color-foreground)]">
-        {themeState.hasPublishedOverride ? (
-          <DesignThemeStyles tokens={themeState.tokens} />
-        ) : null}
-        {motionState.hasPublishedOverride ? (
-          <DesignMotionStyles settings={motionState.settings} />
-        ) : null}
+        {injectTheme ? <DesignThemeStyles tokens={themeState.tokens} /> : null}
+        {injectMotion ? <DesignMotionStyles settings={motionState.settings} /> : null}
         <CartProvider>{children}</CartProvider>
       </body>
     </html>

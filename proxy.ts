@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { DESIGN_PREVIEW_COOKIE } from "@/lib/design/preview";
 
 /**
  * Refreshes the Supabase session cookie on every navigation and keeps
@@ -48,6 +49,23 @@ export async function proxy(request: NextRequest) {
     url.pathname = "/connexion";
     url.search = `?next=${encodeURIComponent(pathname + search)}`;
     return NextResponse.redirect(url);
+  }
+
+  const preview = request.nextUrl.searchParams.get("preview");
+  if (preview === "draft") {
+    response.cookies.set(DESIGN_PREVIEW_COOKIE, "draft", {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 4,
+    });
+  } else if (preview === "live" || preview === "off") {
+    response.cookies.set(DESIGN_PREVIEW_COOKIE, "", {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 0,
+    });
   }
 
   return response;

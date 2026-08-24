@@ -474,3 +474,22 @@ export async function clearAboutSectionDraft(
     };
   }
 }
+
+/** Publie un emplacement si un brouillon existe. Retourne false si aucun brouillon. */
+export async function publishSectionDraftIfExists(
+  placement: string,
+  userId: string,
+): Promise<boolean> {
+  const supabase = await createSupabaseServerClient();
+  const { data: draft } = await supabase
+    .from("design_section_configs")
+    .select("id")
+    .eq("placement", placement)
+    .eq("status", "draft")
+    .maybeSingle();
+
+  if (!draft) return false;
+
+  await publishSection(placement, userId);
+  return true;
+}
