@@ -11,6 +11,7 @@ import { normalizeThemeTokens, themeTokensEqual } from "@/lib/design/theme-css";
 import { isValidPlacement } from "@/lib/design/placements";
 import type {
   DesignThemeTokens,
+  DesignMediaKindFilter,
   HeroSectionConfig,
   PlacementImageConfig,
   ResolvedGalleryItem,
@@ -217,3 +218,46 @@ export const getPublishedGalleryItems = cache(async (): Promise<ResolvedGalleryI
     })
     .filter((item): item is ResolvedGalleryItem => item !== null);
 });
+
+export type DesignMediaLibraryOptions = {
+  kind?: DesignMediaKindFilter;
+  search?: string;
+  includeInactive?: boolean;
+};
+
+export const getDesignMediaLibrary = cache(
+  async (options?: DesignMediaLibraryOptions): Promise<DesignMediaRow[]> => {
+    const supabase = await createSupabaseServerClient();
+    let query = supabase
+      .from("design_media")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!options?.includeInactive) {
+      query = query.eq("is_active", true);
+    }
+
+    const kind = options?.kind ?? "all";
+    if (kind !== "all") {
+      query = query.eq("media_kind", kind);
+    }
+
+    const search = options?.search?.trim().replace(/[%_]/g, "");
+    if (search) {
+      query = query.or(
+        `display_name.ilike.%${search}%,alt_text.ilike.%${search}%,description.ilike.%${search}%`,
+      );
+    }
+
+    const { data } = await query;
+    return data ?? [];
+  },
+);
+
+export const getDesignMediaById = cache(
+  async (mediaId: string): Promise<DesignMediaRow | null> => {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase.from("design_media").select("*").eq("id", mediaId).maybeSingle();
+    return data ?? null;
+  },
+);

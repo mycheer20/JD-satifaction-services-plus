@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { assertDesignEditor } from "@/features/design/guards";
 import { DESIGN_BUCKET } from "@/lib/design/placements";
 import {
@@ -14,10 +15,30 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { MediaUploadResult } from "@/types/design";
 
+const DESIGN_PATHS = ["/design", "/design/mediatheque"] as const;
+
+function revalidateDesignMediaPaths() {
+  for (const path of DESIGN_PATHS) {
+    revalidatePath(path);
+  }
+}
+
 export type DesignMediaUploadState =
   | { status: "idle" }
   | { status: "error"; message: string }
   | { status: "success"; media: MediaUploadResult };
+
+export type DesignMediaMetadataState =
+  | { status: "idle" }
+  | { status: "error"; message: string }
+  | { status: "success"; message: string };
+
+const metadataSchema = z.object({
+  media_id: z.string().uuid(),
+  display_name: z.string().trim().min(1, "Le nom d'affichage est requis.").max(160),
+  alt_text: z.string().trim().max(500).optional(),
+  description: z.string().trim().max(1000).optional(),
+});
 
 /**
  * Upload sécurisé vers la bibliothèque média Design.
@@ -92,7 +113,7 @@ export async function uploadDesignMedia(
       return { status: "error", message: insertError?.message ?? "Enregistrement impossible." };
     }
 
-    revalidatePath("/design");
+    revalidateDesignMediaPaths();
 
     return {
       status: "success",
@@ -114,26 +135,120 @@ export async function uploadDesignMedia(
   }
 }
 
-/** Suppression sécurisée — chemin validé, fichier Storage + métadonnées. */
-export async function deleteDesignMedia(mediaId: string): Promise<void> {
-  await assertDesignEditor();
+export async function updateDesignMediaMetadata(
+  _previous: DesignMediaMetadataState,
+  formData: FormData,
+): Promise<DesignMediaMetadataState> {
+  try {
+    await assertDesignEditor();
 
-  const supabase = await createSupabaseServerClient();
-  const { data: media } = await supabase
-    .from("design_media")
-    .select("storage_path")
-    .eq("id", mediaId)
-    .maybeSingle();
+    const parsed = metadataSchema.safeParse({
+      media_id: formData.get("media_id"),
+      display_name: formData.get("display_name"),
+      alt_text: String(formData.get("alt_text") ?? "").trim() || undefined,
+      description: String(formData.get("description") ?? "").trim() || undefined,
+    });
 
-  if (!media?.storage_path) {
-    throw new Error("Média introuvable.");
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
+      return { status: "error", message: first?.message ?? "Données invalides." };
+    }
+
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase
+      .from("design_media")
+      .update({
+        display_name: parsed.data.display_name,
+        alt_text: parsed.data.alt_text ?? null,
+        description: parsed.data.description ?? null,
+      })
+      .eq("id", parsed.data.media_id);
+
+    if (error) {
+      return { status: "error", message: error.message };
+    }
+
+    revalidateDesignMediaPaths();
+    return { status: "success", message: "Métadonnées enregistrées." };
+  } catch (err) {
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : "Mise à jour impossible.",
+    };
   }
+}
 
-  assertSafeStoragePath(media.storage_path);
+export async function setDesignMediaActive(
+  mediaId: string,
+  isActive: boolean,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    await assertDesignEditor();
 
-  const admin = createSupabaseAdminClient();
-  await admin.storage.from(DESIGN_BUCKET).remove([media.storage_path]);
-  await supabase.from("design_media").delete().eq("id", mediaId);
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase
+      .from("design_media")
+      .update({ is_active: isActive })
+      .eq("id", mediaId);
 
-  revalidatePath("/design");
+    if (error) {
+      return { ok: false, message: error.message };
+    }
+
+    revalidateDesignMediaPaths();
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Action impossible.",
+    };
+  }
+}
+
+/** Suppression sécurisée — chemin validé, fichier Storage + métadonnées. */
+export async function deleteDesignMedia(
+  mediaId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    await assertDesignEditor();
+
+    const supabase = await createSupabaseServerClient();
+    const { data: media } = await supabase
+      .from("design_media")
+      .select("storage_path")
+      .eq("id", mediaId)
+      .maybeSingle();
+
+    if (!media?.storage_path) {
+      return { ok: false, message: "Média introuvable." };
+    }
+
+    assertSafeStoragePath(media.storage_path);
+
+    const admin = createSupabaseAdminClient();
+    const { error: deleteRowError } = await supabase
+      .from("design_media")
+      .delete()
+      .eq("id", mediaId);
+
+    if (deleteRowError) {
+      if (deleteRowError.code === "23503") {
+        return {
+          ok: false,
+          message:
+            "Ce média est utilisé par une section ou la galerie. Désactivez-le ou retirez-le des contenus avant suppression.",
+        };
+      }
+      return { ok: false, message: deleteRowError.message };
+    }
+
+    await admin.storage.from(DESIGN_BUCKET).remove([media.storage_path]);
+    revalidateDesignMediaPaths();
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Suppression impossible.",
+    };
+  }
 }

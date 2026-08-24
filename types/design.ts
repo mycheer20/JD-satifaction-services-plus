@@ -83,3 +83,5 @@ export type MediaUploadResult = {
   sizeBytes: number;
   mediaKind: "image" | "svg" | "animated";
 };
+
+export type DesignMediaKindFilter = "all" | "image" | "svg" | "animated";

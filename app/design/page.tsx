@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireDesignEditor } from "@/features/design/guards";
-import { getPublishedThemeTokensState } from "@/features/design/queries";
+import { getPublishedThemeTokensState, getDesignMediaLibrary } from "@/features/design/queries";
 import { DESIGN_PLACEMENTS } from "@/lib/design/placements";
 import { DESIGN_NAV } from "@/lib/design/nav";
 import { DesignPageHeader, DesignSection } from "@/components/design/design-page-header";
@@ -24,6 +24,7 @@ export default async function DesignDashboardPage() {
 
   const activeModules = DESIGN_NAV.flatMap((s) => s.items).filter((i) => !i.disabled).length;
   const upcomingModules = DESIGN_NAV.flatMap((s) => s.items).filter((i) => i.disabled).length;
+  const mediaCount = await getDesignMediaLibrary({ includeInactive: true }).then((m) => m.length);
 
   return (
     <div className="space-y-10">
@@ -56,9 +57,9 @@ export default async function DesignDashboardPage() {
           tone="neutral"
         />
         <StatCard
-          label="Emplacements"
-          value={String(DESIGN_PLACEMENTS.length)}
-          hint="Zones visuelles codées (hero, familles, à propos…)."
+          label="Médias en bibliothèque"
+          value={String(mediaCount)}
+          hint="Images importées via la bibliothèque sécurisée."
           tone="neutral"
         />
         <StatCard

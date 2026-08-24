@@ -39,8 +39,6 @@ export const DESIGN_NAV: DesignNavSection[] = [
         label: "Bibliothèque média",
         description: "Images et fichiers",
         icon: "🖼️",
-        disabled: true,
-        badge: "Phase 4",
       },
       {
         href: "/design/accueil",
