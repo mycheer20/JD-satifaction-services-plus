@@ -4,6 +4,7 @@
  */
 
 import type { DesignGalleryCategoryId, SlideTransition } from "@/lib/design/placements";
+import type { DesignMediaRow } from "@/types/database";
 
 export type DesignPublishStatus = "draft" | "published";
 
@@ -85,3 +86,22 @@ export type MediaUploadResult = {
 };
 
 export type DesignMediaKindFilter = "all" | "image" | "svg" | "animated";
+
+export type EditorSlideView = {
+  id: string;
+  mediaId: string;
+  altText: string;
+  position: number;
+  durationMs: number;
+  transition: SlideTransition;
+  overlayOpacity: number;
+  imagePosition: string;
+  media: DesignMediaRow | null;
+};
+
+export type SectionEditorView = {
+  placement: string;
+  config: HeroSectionConfig | PlacementImageConfig;
+  slides: EditorSlideView[];
+  publishedAt: string | null;
+};

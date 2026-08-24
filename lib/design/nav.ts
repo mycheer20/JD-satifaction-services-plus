@@ -45,8 +45,6 @@ export const DESIGN_NAV: DesignNavSection[] = [
         label: "Page d'accueil",
         description: "Hero, familles, services",
         icon: "✨",
-        disabled: true,
-        badge: "Phase 5",
       },
       {
         href: "/design/a-propos",

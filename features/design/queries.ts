@@ -8,7 +8,8 @@ import {
   DEFAULT_THEME_TOKENS,
 } from "@/lib/design/defaults";
 import { normalizeThemeTokens, themeTokensEqual } from "@/lib/design/theme-css";
-import { isValidPlacement } from "@/lib/design/placements";
+import { isValidPlacement, DESIGN_PLACEMENTS } from "@/lib/design/placements";
+import type { SlideTransition } from "@/lib/design/placements";
 import type {
   DesignThemeTokens,
   DesignMediaKindFilter,
@@ -17,6 +18,7 @@ import type {
   ResolvedGalleryItem,
   ResolvedPlacementMedia,
   ResolvedSlide,
+  SectionEditorView,
 } from "@/types/design";
 import type {
   DesignMediaRow,
@@ -136,6 +138,10 @@ export async function resolvePlacementMedia(
 
   const config = (section.config ?? {}) as HeroSectionConfig | PlacementImageConfig;
   const heroConfig = { ...DEFAULT_HERO_CONFIG, ...config } as HeroSectionConfig;
+
+  if (placement === "home.hero" && heroConfig.mode === "gradient") {
+    return null;
+  }
 
   const { data: slides } = await supabase
     .from("design_slides")
@@ -261,3 +267,91 @@ export const getDesignMediaById = cache(
     return data ?? null;
   },
 );
+
+async function loadSectionEditorView(
+  placement: string,
+  status: DesignPublishStatus,
+): Promise<SectionEditorView | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data: section } = await supabase
+    .from("design_section_configs")
+    .select("*")
+    .eq("placement", placement)
+    .eq("status", status)
+    .maybeSingle();
+
+  if (!section) return null;
+
+  const { data: slides } = await supabase
+    .from("design_slides")
+    .select("*")
+    .eq("section_config_id", section.id)
+    .order("position");
+
+  const slideRows = (slides ?? []) as DesignSlideRow[];
+  const mediaMap = await loadMediaMap(slideRows.map((s) => s.media_id));
+
+  return {
+    placement,
+    config: (section.config ?? {}) as HeroSectionConfig | PlacementImageConfig,
+    slides: slideRows.map((slide) => ({
+      id: slide.id,
+      mediaId: slide.media_id,
+      altText: slide.alt_text?.trim() ?? "",
+      position: slide.position,
+      durationMs: slide.duration_ms,
+      transition: slide.transition as SlideTransition,
+      overlayOpacity: Number(slide.overlay_opacity),
+      imagePosition: slide.image_position,
+      media: mediaMap.get(slide.media_id) ?? null,
+    })),
+    publishedAt: section.published_at,
+  };
+}
+
+export const getHeroSectionEditorState = cache(async () => {
+  const [draft, published] = await Promise.all([
+    loadSectionEditorView("home.hero", "draft"),
+    loadSectionEditorView("home.hero", "published"),
+  ]);
+
+  return {
+    draft,
+    published,
+    hasPublishedOverride: Boolean(published?.slides.length || published?.config),
+  };
+});
+
+export const getFamilyPlacementEditorStates = cache(async () => {
+  const familyPlacements = DESIGN_PLACEMENTS.filter((p) => p.id.startsWith("home.family."));
+  const entries = await Promise.all(
+    familyPlacements.map(async (placement) => {
+      const [draft, published] = await Promise.all([
+        loadSectionEditorView(placement.id, "draft"),
+        loadSectionEditorView(placement.id, "published"),
+      ]);
+      return {
+        placement,
+        draft,
+        published,
+        hasPublishedImage: Boolean(published?.slides.length),
+      };
+    }),
+  );
+  return entries;
+});
+
+export async function getPublishedFamilyCovers(): Promise<Map<string, ResolvedPlacementMedia>> {
+  const map = new Map<string, ResolvedPlacementMedia>();
+  const familyPlacements = DESIGN_PLACEMENTS.filter((p) => p.familySlug);
+
+  await Promise.all(
+    familyPlacements.map(async (p) => {
+      if (!p.familySlug) return;
+      const media = await resolvePlacementMedia(p.id);
+      if (media) map.set(p.familySlug, media);
+    }),
+  );
+
+  return map;
+}
