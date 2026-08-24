@@ -51,8 +51,6 @@ export const DESIGN_NAV: DesignNavSection[] = [
         label: "Page À propos",
         description: "Sections institutionnelles",
         icon: "🏢",
-        disabled: true,
-        badge: "Phase 8",
       },
       {
         href: "/design/galerie",

@@ -3,22 +3,33 @@
 import { revalidatePath } from "next/cache";
 import { assertDesignEditor } from "@/features/design/guards";
 import {
+  parseAboutSectionPayload,
   parseFamilyCoverPayload,
   parseHeroDraftPayload,
+  validateAboutSectionForPublish,
   validateFamilyCoverForPublish,
   validateHeroForPublish,
+  type AboutSectionPayload,
   type FamilyCoverPayload,
 } from "@/lib/design/section-validation";
+import { isAboutPlacement } from "@/lib/design/about-sections";
 import { isValidPlacement, type DesignPlacementId } from "@/lib/design/placements";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { HeroSectionConfig, PlacementImageConfig } from "@/types/design";
+import type { AboutSectionConfig, HeroSectionConfig, PlacementImageConfig } from "@/types/design";
 import type { HeroDraftPayload } from "@/lib/design/section-validation";
 import type { DesignSlideRow, Json } from "@/types/database";
 
 const REVALIDATE_PATHS = ["/", "/design/accueil"] as const;
+const ABOUT_REVALIDATE_PATHS = ["/a-propos", "/design/a-propos"] as const;
 
 function revalidateHomeDesign() {
   for (const path of REVALIDATE_PATHS) {
+    revalidatePath(path);
+  }
+}
+
+function revalidateAboutDesign() {
+  for (const path of ABOUT_REVALIDATE_PATHS) {
     revalidatePath(path);
   }
 }
@@ -331,6 +342,131 @@ export async function clearFamilyCoverDraft(
 
     await saveFamilyCoverDraft(sectionActionInitial, empty);
     return { status: "success", message: "Brouillon réinitialisé — gradient par défaut." };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Réinitialisation impossible.",
+    };
+  }
+}
+
+export async function saveAboutSectionDraft(
+  _previous: SectionActionState,
+  formData: FormData,
+): Promise<SectionActionState> {
+  try {
+    const user = await assertDesignEditor();
+    const placement = String(formData.get("placement") ?? "");
+    if (!isValidPlacement(placement) || !isAboutPlacement(placement)) {
+      return { status: "error", message: "Emplacement À propos invalide." };
+    }
+
+    const raw = formData.get("payload");
+    if (typeof raw !== "string") {
+      return { status: "error", message: "Données invalides." };
+    }
+
+    const parsed = parseAboutSectionPayload(JSON.parse(raw));
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
+      return { status: "error", message: first?.message ?? "Données invalides." };
+    }
+
+    const payload = parsed.data;
+    const sectionConfig: AboutSectionConfig = {
+      title: payload.title,
+      subtitle: payload.subtitle,
+      body: payload.body,
+      items: payload.items,
+      overlayOpacity: payload.overlayOpacity ?? 0.45,
+      imagePosition: payload.imagePosition ?? "center",
+    };
+
+    const sectionId = await upsertDraftSection(placement, sectionConfig as Json, user.id);
+
+    if (payload.mediaId) {
+      await replaceSectionSlides(sectionId, [
+        {
+          mediaId: payload.mediaId,
+          altText: payload.altText?.trim() || " ",
+          position: 0,
+          overlayOpacity: payload.overlayOpacity,
+          imagePosition: payload.imagePosition,
+        },
+      ]);
+    } else {
+      await replaceSectionSlides(sectionId, []);
+    }
+
+    revalidatePath("/design/a-propos");
+    return { status: "success", message: "Section enregistrée en brouillon." };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Enregistrement impossible.",
+    };
+  }
+}
+
+export async function publishAboutSection(
+  _previous: SectionActionState,
+  formData: FormData,
+): Promise<SectionActionState> {
+  try {
+    const user = await assertDesignEditor();
+    const placement = String(formData.get("placement") ?? "") as DesignPlacementId;
+    if (!isValidPlacement(placement) || !isAboutPlacement(placement)) {
+      return { status: "error", message: "Emplacement À propos invalide." };
+    }
+
+    const saveResult = await saveAboutSectionDraft(sectionActionInitial, formData);
+    if (saveResult.status === "error") return saveResult;
+
+    const raw = formData.get("payload");
+    if (typeof raw === "string" && raw.trim()) {
+      const parsed = parseAboutSectionPayload(JSON.parse(raw));
+      if (parsed.success) {
+        const validationError = validateAboutSectionForPublish(parsed.data);
+        if (validationError) return { status: "error", message: validationError };
+      }
+    }
+
+    await publishSection(placement, user.id);
+    revalidateAboutDesign();
+    return { status: "success", message: "Section publiée sur la page À propos." };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Publication impossible.",
+    };
+  }
+}
+
+export async function clearAboutSectionDraft(
+  _previous: SectionActionState,
+  formData: FormData,
+): Promise<SectionActionState> {
+  try {
+    await assertDesignEditor();
+    const placement = String(formData.get("placement") ?? "");
+    if (!isValidPlacement(placement) || !isAboutPlacement(placement)) {
+      return { status: "error", message: "Emplacement invalide." };
+    }
+
+    const empty = new FormData();
+    empty.set("placement", placement);
+    empty.set(
+      "payload",
+      JSON.stringify({
+        mediaId: null,
+        altText: "",
+        overlayOpacity: 0.45,
+        imagePosition: "center",
+      } satisfies AboutSectionPayload),
+    );
+
+    await saveAboutSectionDraft(sectionActionInitial, empty);
+    return { status: "success", message: "Brouillon réinitialisé — contenu par défaut." };
   } catch (error) {
     return {
       status: "error",

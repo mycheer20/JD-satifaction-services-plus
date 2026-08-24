@@ -43,6 +43,40 @@ export type PlacementImageConfig = {
   enableHover?: boolean;
 };
 
+export type AboutHighlightItem = {
+  title: string;
+  description: string;
+  icon?: string;
+};
+
+export type AboutSectionConfig = PlacementImageConfig & {
+  title?: string;
+  subtitle?: string;
+  body?: string;
+  items?: AboutHighlightItem[];
+};
+
+export type AboutSectionContent = {
+  title: string;
+  subtitle?: string;
+  body?: string;
+  items?: AboutHighlightItem[];
+};
+
+export type ResolvedAboutSection = {
+  id: string;
+  placement: string;
+  title: string;
+  subtitle?: string;
+  body?: string;
+  items?: AboutHighlightItem[];
+  imageUrl?: string;
+  altText?: string;
+  overlayOpacity: number;
+  imagePosition: string;
+  hasPublishedOverride: boolean;
+};
+
 export type ResolvedSlide = {
   id: string;
   publicUrl: string;
@@ -101,7 +135,7 @@ export type EditorSlideView = {
 
 export type SectionEditorView = {
   placement: string;
-  config: HeroSectionConfig | PlacementImageConfig;
+  config: HeroSectionConfig | PlacementImageConfig | AboutSectionConfig;
   slides: EditorSlideView[];
   publishedAt: string | null;
 };

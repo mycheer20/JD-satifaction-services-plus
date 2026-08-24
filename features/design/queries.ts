@@ -2,11 +2,9 @@ import "server-only";
 
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import {
-  DEFAULT_HERO_CONFIG,
-  DEFAULT_PLACEMENT_IMAGE,
-  DEFAULT_THEME_TOKENS,
-} from "@/lib/design/defaults";
+import { DEFAULT_HERO_CONFIG, DEFAULT_PLACEMENT_IMAGE, DEFAULT_THEME_TOKENS } from "@/lib/design/defaults";
+import { DEFAULT_ABOUT_CONTENT } from "@/lib/design/about-defaults";
+import { ABOUT_PAGE_SECTIONS, type AboutSectionId } from "@/lib/design/about-sections";
 import { normalizeThemeTokens, themeTokensEqual } from "@/lib/design/theme-css";
 import { isValidPlacement, DESIGN_PLACEMENTS } from "@/lib/design/placements";
 import type { SlideTransition } from "@/lib/design/placements";
@@ -18,7 +16,9 @@ import type {
   ResolvedGalleryItem,
   ResolvedPlacementMedia,
   ResolvedSlide,
+  ResolvedAboutSection,
   SectionEditorView,
+  AboutSectionConfig,
 } from "@/types/design";
 import type {
   DesignMediaRow,
@@ -354,4 +354,68 @@ export async function getPublishedFamilyCovers(): Promise<Map<string, ResolvedPl
   );
 
   return map;
+}
+
+function mergeAboutSectionContent(sectionId: AboutSectionId, config?: AboutSectionConfig | null) {
+  const defaults = DEFAULT_ABOUT_CONTENT[sectionId];
+  return {
+    id: sectionId,
+    title: config?.title?.trim() || defaults.title,
+    subtitle: config?.subtitle?.trim() || defaults.subtitle,
+    body: config?.body?.trim() || defaults.body,
+    items: config?.items?.length ? config.items : defaults.items,
+  };
+}
+
+async function resolveAboutSection(sectionId: AboutSectionId): Promise<ResolvedAboutSection> {
+  const def = ABOUT_PAGE_SECTIONS.find((section) => section.id === sectionId)!;
+  const [published, media] = await Promise.all([
+    getPublishedSectionConfig(def.placement),
+    def.supportsImage ? resolvePlacementMedia(def.placement) : Promise.resolve(null),
+  ]);
+
+  const config = published?.config as AboutSectionConfig | undefined;
+  const merged = mergeAboutSectionContent(sectionId, config);
+  const imageConfig = { ...DEFAULT_PLACEMENT_IMAGE, ...config } as AboutSectionConfig;
+
+  return {
+    ...merged,
+    placement: def.placement,
+    imageUrl: media?.imageUrl ?? media?.slides?.[0]?.publicUrl,
+    altText: media?.altText ?? media?.slides?.[0]?.altText,
+    overlayOpacity:
+      media?.overlayOpacity ?? imageConfig.overlayOpacity ?? DEFAULT_PLACEMENT_IMAGE.overlayOpacity!,
+    imagePosition: media?.imagePosition ?? imageConfig.imagePosition ?? "center",
+    hasPublishedOverride: Boolean(published && (media || published.config)),
+  };
+}
+
+export const getAboutSectionEditorStates = cache(async () => {
+  const entries = await Promise.all(
+    ABOUT_PAGE_SECTIONS.map(async (section) => {
+      const [draft, published] = await Promise.all([
+        loadSectionEditorView(section.placement, "draft"),
+        loadSectionEditorView(section.placement, "published"),
+      ]);
+      return {
+        section,
+        draft,
+        published,
+        hasPublishedOverride: Boolean(published?.slides.length || published?.config),
+      };
+    }),
+  );
+  return entries;
+});
+
+export async function getPublishedAboutPageData(): Promise<{
+  sections: ResolvedAboutSection[];
+  gallery: ResolvedGalleryItem[];
+}> {
+  const [sections, gallery] = await Promise.all([
+    Promise.all(ABOUT_PAGE_SECTIONS.map((section) => resolveAboutSection(section.id))),
+    getPublishedGalleryItems(),
+  ]);
+
+  return { sections, gallery };
 }

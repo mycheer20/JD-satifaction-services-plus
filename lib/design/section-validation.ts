@@ -85,3 +85,34 @@ export function validateFamilyCoverForPublish(payload: FamilyCoverPayload): stri
   }
   return null;
 }
+
+const aboutHighlightSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(1).max(500),
+  icon: z.string().trim().max(8).optional(),
+});
+
+export const aboutSectionPayloadSchema = z.object({
+  mediaId: z.string().uuid().nullable(),
+  altText: z.string().trim().max(500).optional(),
+  title: z.string().trim().max(200).optional(),
+  subtitle: z.string().trim().max(300).optional(),
+  body: z.string().trim().max(8000).optional(),
+  items: z.array(aboutHighlightSchema).max(8).optional(),
+  overlayOpacity: z.number().min(0).max(0.85).optional(),
+  imagePosition: z.string().trim().optional(),
+});
+
+export type AboutSectionPayload = z.infer<typeof aboutSectionPayloadSchema>;
+
+export function parseAboutSectionPayload(raw: unknown) {
+  return aboutSectionPayloadSchema.safeParse(raw);
+}
+
+export function validateAboutSectionForPublish(payload: AboutSectionPayload): string | null {
+  if (!payload.mediaId) return null;
+  if (!payload.altText?.trim()) {
+    return "Texte alternatif requis lorsqu'une image est publiée.";
+  }
+  return null;
+}
