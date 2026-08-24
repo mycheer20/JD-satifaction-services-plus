@@ -8,6 +8,7 @@ import { ABOUT_PAGE_SECTIONS, type AboutSectionId } from "@/lib/design/about-sec
 import { normalizeThemeTokens, themeTokensEqual } from "@/lib/design/theme-css";
 import { DEFAULT_MOTION_SETTINGS, MOTION_PLACEMENT } from "@/lib/design/motion-defaults";
 import { normalizeMotionSettings, motionSettingsEqual } from "@/lib/design/motion-css";
+import { sectionViewDiffers } from "@/lib/design/editor-diff";
 import { getDesignPreviewMode, getDesignPreviewOptions } from "@/lib/design/preview";
 import { isValidPlacement, DESIGN_PLACEMENTS } from "@/lib/design/placements";
 import type { SlideTransition } from "@/lib/design/placements";
@@ -610,31 +611,6 @@ export async function getStorefrontMotionSettingsState(): Promise<ResolvedMotion
     source: "draft",
     hasPublishedOverride: true,
   };
-}
-
-function sectionViewDiffers(
-  draft: SectionEditorView | null,
-  published: SectionEditorView | null,
-): boolean {
-  if (!draft) return false;
-  if (!published) return Boolean(draft.slides.length || Object.keys(draft.config).length);
-  return (
-    JSON.stringify(draft.config) !== JSON.stringify(published.config) ||
-    JSON.stringify(
-      draft.slides.map((s) => ({
-        mediaId: s.mediaId,
-        position: s.position,
-        altText: s.altText,
-      })),
-    ) !==
-      JSON.stringify(
-        published.slides.map((s) => ({
-          mediaId: s.mediaId,
-          position: s.position,
-          altText: s.altText,
-        })),
-      )
-  );
 }
 
 export const getDesignPendingModules = cache(async (): Promise<DesignPendingModule[]> => {

@@ -8,6 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:design": "vitest run tests/design",
+    "verify:design": "npm run typecheck && vitest run tests/design && node scripts/design-verify.mjs",
     "seed:generate": "node supabase/taxonomy/generate.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:seed": "node scripts/db-migrate.mjs --seed-only",
@@ -37,6 +41,7 @@
     "eslint-config-next": "16.3.1",
     "pg": "^8.23.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }
