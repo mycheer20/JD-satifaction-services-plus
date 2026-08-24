@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeTokensForm } from "@/components/design/theme-tokens-form";
-import { PageTitle, SectionLabel } from "@/components/ui/badge";
+import { DesignPageHeader } from "@/components/design/design-page-header";
 import {
   getDraftThemeTokens,
   getPublishedThemeTokensState,
@@ -19,14 +19,11 @@ export default async function DesignAppearancePage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <SectionLabel>Design du site</SectionLabel>
-        <PageTitle
-          title="Apparence & couleurs"
-          description="Personnalisez les couleurs globales, les surfaces et les accents. Le site conserve le design par défaut tant qu'aucune configuration n'est publiée."
-          className="mb-0"
-        />
-      </div>
+      <DesignPageHeader
+        eyebrow="Design du site"
+        title="Apparence & couleurs"
+        description="Définissez la palette globale : marque, surfaces, textes et statuts. Enregistrez un brouillon pour tester, puis publiez pour l'appliquer à toute la boutique. Sans publication, le design codé par défaut reste visible."
+      />
 
       <ThemeTokensForm
         draftTokens={draftTokens}

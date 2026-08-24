@@ -330,6 +330,27 @@ body {
   backdrop-filter: blur(12px);
 }
 
+/* ---------------------------------------------------------------------------
+   Design du site — panneau (même logique claire que l'admin)
+   --------------------------------------------------------------------------- */
+
+[data-design-panel="true"] {
+  --design-sidebar-bg: #1e1b4b;
+}
+
+.design-shell {
+  background: var(--color-background);
+}
+
+.design-sidebar {
+  background: var(--design-sidebar-bg);
+}
+
+.design-topbar {
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+
 .admin-form-grid {
   @apply grid gap-5 sm:grid-cols-2;
 }
