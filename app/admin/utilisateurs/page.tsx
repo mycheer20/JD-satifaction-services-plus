@@ -21,6 +21,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   customer: "Client",
   staff: "Équipe",
   admin: "Administrateur",
+  designer: "Designer",
 };
 
 export default async function AdminUsersPage({
@@ -67,6 +68,7 @@ export default async function AdminUsersPage({
                     <Select name="role" defaultValue={user.role} className="h-9 py-1 text-xs">
                       <option value="customer">Client</option>
                       <option value="staff">Équipe</option>
+                      <option value="designer">Designer</option>
                       <option value="admin">Administrateur</option>
                     </Select>
                     <Button type="submit" size="sm" variant="soft">

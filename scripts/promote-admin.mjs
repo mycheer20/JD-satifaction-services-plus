@@ -26,11 +26,11 @@ for (const file of [".env.local", ".env"]) {
 const [email, role = "admin"] = process.argv.slice(2);
 
 if (!email) {
-  console.error("Usage : npm run admin:promote -- <email> [admin|staff|customer]");
+  console.error("Usage : npm run admin:promote -- <email> [admin|staff|designer|customer]");
   process.exit(1);
 }
 
-if (!["admin", "staff", "customer"].includes(role)) {
+if (!["admin", "staff", "customer", "designer"].includes(role)) {
   console.error(`Rôle invalide : ${role}`);
   process.exit(1);
 }

@@ -49,3 +49,12 @@ export function isStaff(user: SessionUser | null): boolean {
 export function isAdmin(user: SessionUser | null): boolean {
   return user?.role === "admin";
 }
+
+export function isDesigner(user: SessionUser | null): boolean {
+  return user?.role === "designer";
+}
+
+/** Admin ou designer — accès au panneau Design du site. */
+export function isDesignEditor(user: SessionUser | null): boolean {
+  return user?.role === "admin" || user?.role === "designer";
+}

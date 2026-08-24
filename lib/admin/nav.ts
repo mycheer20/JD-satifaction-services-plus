@@ -35,6 +35,7 @@ export const ADMIN_NAV: AdminNavSection[] = [
         icon: "🔔",
         badgeKey: "notificationsUnread",
       },
+      { href: "/design", label: "Design du site", icon: "✨", adminOnly: true },
     ],
   },
   {

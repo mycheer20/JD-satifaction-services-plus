@@ -14,7 +14,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type UserRole = "customer" | "staff" | "admin";
+export type UserRole = "customer" | "staff" | "admin" | "designer";
 export type ProductStatus = "draft" | "active" | "archived";
 export type ItemKind = "physical_product" | "digital_product" | "service";
 export type OrderStatus =
@@ -402,6 +402,75 @@ export type AdminNotificationRow = {
   created_at: string;
 };
 
+export type DesignPublishStatus = "draft" | "published";
+
+export type DesignMediaRow = Timestamps & {
+  id: string;
+  bucket_id: string;
+  storage_path: string;
+  public_url: string;
+  display_name: string;
+  description: string | null;
+  alt_text: string | null;
+  mime_type: string;
+  extension: string;
+  media_kind: "image" | "svg" | "animated";
+  width: number | null;
+  height: number | null;
+  size_bytes: number;
+  is_active: boolean;
+  created_by: string | null;
+};
+
+export type DesignSectionConfigRow = Timestamps & {
+  id: string;
+  placement: string;
+  status: DesignPublishStatus;
+  config: Json;
+  published_at: string | null;
+  updated_by: string | null;
+};
+
+export type DesignSlideRow = Timestamps & {
+  id: string;
+  section_config_id: string;
+  media_id: string;
+  position: number;
+  duration_ms: number;
+  transition: string;
+  overlay_opacity: number;
+  image_position: string;
+  alt_text: string | null;
+  is_active: boolean;
+};
+
+export type DesignGalleryItemRow = Timestamps & {
+  id: string;
+  media_id: string;
+  category: string;
+  title: string | null;
+  description: string | null;
+  position: number;
+  status: DesignPublishStatus;
+  is_active: boolean;
+  created_by: string | null;
+};
+
+export type DesignThemeTokensRow = Timestamps & {
+  id: string;
+  status: DesignPublishStatus;
+  tokens: Json;
+  updated_by: string | null;
+};
+
+export type DesignPublicationRow = {
+  id: string;
+  published_by: string | null;
+  notes: string | null;
+  snapshot: Json;
+  published_at: string;
+};
+
 export type ReviewRow = Timestamps & {
   id: string;
   product_id: string;
@@ -455,6 +524,15 @@ export type Database = {
         AdminNotificationRow,
         "kind" | "title" | "message" | "link_href"
       >;
+      design_media: Table<DesignMediaRow, "storage_path" | "public_url" | "display_name">;
+      design_section_configs: Table<DesignSectionConfigRow, "placement" | "status">;
+      design_slides: Table<DesignSlideRow, "section_config_id" | "media_id" | "position">;
+      design_gallery_items: Table<
+        DesignGalleryItemRow,
+        "media_id" | "category" | "status" | "position"
+      >;
+      design_theme_tokens: Table<DesignThemeTokensRow, "status">;
+      design_publications: Table<DesignPublicationRow, "published_at">;
       payment_webhook_events: Table<PaymentWebhookEventRow, "provider" | "event_id">;
       reviews: Table<ReviewRow, "product_id" | "user_id" | "rating">;
     };
@@ -519,9 +597,12 @@ export type Database = {
       admin_dashboard_metrics: { Args: Record<string, never>; Returns: Json };
       is_admin: { Args: Record<string, never>; Returns: boolean };
       is_staff: { Args: Record<string, never>; Returns: boolean };
+      is_designer: { Args: Record<string, never>; Returns: boolean };
+      is_design_editor: { Args: Record<string, never>; Returns: boolean };
     };
     Enums: {
       user_role: UserRole;
+      design_publish_status: DesignPublishStatus;
       product_status: ProductStatus;
       item_kind: ItemKind;
       order_status: OrderStatus;

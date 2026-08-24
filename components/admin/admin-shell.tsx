@@ -9,11 +9,14 @@ import { ButtonLink } from "@/components/ui/button";
 import { publicEnv, storeLogoInitial } from "@/lib/public-env";
 import { cn } from "@/lib/utils";
 
-const ROLE_LABELS = {
+import type { UserRole } from "@/types/database";
+
+const ROLE_LABELS: Record<UserRole, string> = {
   admin: "Administrateur",
   staff: "Équipe",
   customer: "Client",
-} as const;
+  designer: "Designer",
+};
 
 export function AdminShell({
   user,
