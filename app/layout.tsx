@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DesignThemeStyles } from "@/components/design/design-theme-styles";
+import { DesignMotionStyles } from "@/components/design/design-motion-styles";
 import { CartProvider } from "@/features/cart/cart-context";
-import { getPublishedThemeTokensState } from "@/features/design/queries";
+import {
+  getPublishedMotionSettingsState,
+  getPublishedThemeTokensState,
+} from "@/features/design/queries";
+import { motionSettingsToDataAttributes } from "@/lib/design/motion-css";
 import { publicEnv } from "@/lib/public-env";
 import "./globals.css";
 
@@ -27,16 +32,25 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const themeState = await getPublishedThemeTokensState();
+  const [themeState, motionState] = await Promise.all([
+    getPublishedThemeTokensState(),
+    getPublishedMotionSettingsState(),
+  ]);
+
+  const motionAttrs = motionSettingsToDataAttributes(motionState.settings);
 
   return (
     <html
       lang="fr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      {...motionAttrs}
     >
       <body className="flex min-h-full flex-col bg-[color:var(--color-background)] text-[color:var(--color-foreground)]">
         {themeState.hasPublishedOverride ? (
           <DesignThemeStyles tokens={themeState.tokens} />
+        ) : null}
+        {motionState.hasPublishedOverride ? (
+          <DesignMotionStyles settings={motionState.settings} />
         ) : null}
         <CartProvider>{children}</CartProvider>
       </body>

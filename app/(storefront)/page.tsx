@@ -15,6 +15,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/badge";
 import { StorefrontHomeHero } from "@/components/storefront/home-hero";
+import { MotionReveal } from "@/components/storefront/motion-reveal";
 import { getPublishedFamilyCovers } from "@/features/design/queries";
 
 export default function HomePage() {
@@ -22,7 +23,13 @@ export default function HomePage() {
     <div className="section-stack page-container">
       {homeSections.map((section, index) => (
         <Suspense key={`${section.kind}-${index}`} fallback={<SectionSkeleton />}>
-          <HomeSectionBlock section={section} />
+          {section.kind === "hero" ? (
+            <HomeSectionBlock section={section} />
+          ) : (
+            <MotionReveal delayMs={Math.min(index * 60, 240)}>
+              <HomeSectionBlock section={section} />
+            </MotionReveal>
+          )}
         </Suspense>
       ))}
     </div>

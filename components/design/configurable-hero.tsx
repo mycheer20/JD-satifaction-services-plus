@@ -104,7 +104,7 @@ function HeroSlider({
         <div
           key={slide.id}
           className={cn(
-            "absolute inset-0 transition-all duration-700 ease-out",
+            "motion-hero-slide absolute inset-0 transition-all",
             slideIndex === index ? "opacity-100" : "pointer-events-none opacity-0",
             active.transition === "slide" &&
               (slideIndex === index ? "translate-x-0" : slideIndex < index ? "-translate-x-8" : "translate-x-8"),

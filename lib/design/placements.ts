@@ -14,6 +14,7 @@ export type DesignCapability =
   | "tokens";
 
 export type DesignPlacementId =
+  | "site.motion"
   | "home.hero"
   | "home.families"
   | "home.family.informatique"
@@ -63,6 +64,12 @@ const familyPlacements = (
 }));
 
 export const DESIGN_PLACEMENTS: DesignPlacement[] = [
+  {
+    id: "site.motion",
+    label: "Animations globales",
+    description: "Transitions, survols et apparitions au défilement sur tout le site.",
+    capabilities: ["animation", "hover"],
+  },
   {
     id: "home.hero",
     label: "Accueil — Hero",

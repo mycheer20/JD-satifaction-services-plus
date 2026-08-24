@@ -53,7 +53,7 @@ export default async function DesignDashboardPage() {
         <StatCard
           label="Modules disponibles"
           value={`${activeModules} / ${activeModules + upcomingModules}`}
-          hint="Apparence, média, accueil, À propos et galerie sont disponibles."
+          hint="Apparence, média, accueil, À propos, galerie et animations sont disponibles."
           tone="neutral"
         />
         <StatCard

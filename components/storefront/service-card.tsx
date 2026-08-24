@@ -37,8 +37,8 @@ export function ServiceCard({
     <Link
       href={`/service/${slug}`}
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] shadow-sm transition",
-        "hover:-translate-y-0.5 hover:border-[color:var(--accent)]/40 hover:shadow-lg",
+        "motion-card group relative flex flex-col overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] shadow-sm",
+        "hover:border-[color:var(--accent)]/40",
         variant === "compact" ? "p-4" : "p-6",
         className,
       )}

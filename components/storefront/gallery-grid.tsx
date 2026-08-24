@@ -65,14 +65,14 @@ export function GalleryGrid({ items, limit, className }: GalleryGridProps) {
             key={item.id}
             type="button"
             onClick={() => setActiveIndex(index)}
-            className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-muted)] text-left transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring-color)]"
+            className="motion-gallery-item group relative aspect-[4/3] overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-muted)] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring-color)]"
           >
             <Image
               src={item.publicUrl}
               alt={item.altText}
               fill
               sizes="(max-width:640px) 100vw, 33vw"
-              className="object-cover transition duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              className="motion-gallery-image object-cover motion-reduce:transition-none motion-reduce:group-hover:scale-100"
               unoptimized={item.publicUrl.endsWith(".gif")}
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent p-4">

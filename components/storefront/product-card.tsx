@@ -15,7 +15,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
     : 0;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-[color:var(--accent)]/30 hover:shadow-lg">
+    <article className="motion-card group relative flex flex-col overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] shadow-sm hover:border-[color:var(--accent)]/30">
       <Link
         href={`/produit/${product.slug}`}
         className="relative block aspect-square overflow-hidden bg-gradient-to-b from-[color:var(--color-surface-muted)] to-white"
@@ -26,7 +26,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             alt={product.image.alt ?? product.name}
             fill
             sizes="(min-width: 1280px) 20vw, (min-width: 768px) 30vw, 45vw"
-            className="object-contain p-5 transition duration-500 group-hover:scale-105"
+            className="object-contain p-5 transition duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-2 text-slate-400">

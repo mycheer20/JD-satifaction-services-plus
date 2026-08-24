@@ -58,6 +58,12 @@ export const DESIGN_NAV: DesignNavSection[] = [
         description: "Photos publiques",
         icon: "📸",
       },
+      {
+        href: "/design/animations",
+        label: "Animations",
+        description: "Transitions, survols et apparitions",
+        icon: "✨",
+      },
     ],
   },
 ];

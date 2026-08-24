@@ -8,6 +8,18 @@ import type { DesignMediaRow } from "@/types/database";
 
 export type DesignPublishStatus = "draft" | "published";
 
+export type MotionIntensity = "subtle" | "normal" | "expressive";
+
+export type MotionSettings = {
+  enabled: boolean;
+  intensity: MotionIntensity;
+  cardHover: boolean;
+  heroTransitions: boolean;
+  galleryHover: boolean;
+  familyHover: boolean;
+  scrollReveal: boolean;
+};
+
 export type DesignThemeTokens = {
   primary: string;
   secondary: string;

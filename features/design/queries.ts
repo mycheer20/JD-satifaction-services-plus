@@ -6,6 +6,8 @@ import { DEFAULT_HERO_CONFIG, DEFAULT_PLACEMENT_IMAGE, DEFAULT_THEME_TOKENS } fr
 import { DEFAULT_ABOUT_CONTENT } from "@/lib/design/about-defaults";
 import { ABOUT_PAGE_SECTIONS, type AboutSectionId } from "@/lib/design/about-sections";
 import { normalizeThemeTokens, themeTokensEqual } from "@/lib/design/theme-css";
+import { DEFAULT_MOTION_SETTINGS, MOTION_PLACEMENT } from "@/lib/design/motion-defaults";
+import { normalizeMotionSettings, motionSettingsEqual } from "@/lib/design/motion-css";
 import { isValidPlacement, DESIGN_PLACEMENTS } from "@/lib/design/placements";
 import type { SlideTransition } from "@/lib/design/placements";
 import type {
@@ -19,6 +21,7 @@ import type {
   ResolvedAboutSection,
   SectionEditorView,
   AboutSectionConfig,
+  MotionSettings,
 } from "@/types/design";
 import type {
   DesignMediaRow,
@@ -463,3 +466,54 @@ export async function getPublishedGalleryItemsByCategory(
   if (!category || category === "all") return items;
   return items.filter((item) => item.category === category);
 }
+
+export type MotionSettingsSource = "default" | "published" | "draft";
+
+export type ResolvedMotionSettings = {
+  settings: MotionSettings;
+  source: MotionSettingsSource;
+  hasPublishedOverride: boolean;
+};
+
+export const getPublishedMotionSettingsState = cache(async (): Promise<ResolvedMotionSettings> => {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("design_section_configs")
+    .select("config")
+    .eq("placement", MOTION_PLACEMENT)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (!data?.config || typeof data.config !== "object") {
+    return {
+      settings: DEFAULT_MOTION_SETTINGS,
+      source: "default",
+      hasPublishedOverride: false,
+    };
+  }
+
+  const settings = normalizeMotionSettings(data.config as Partial<MotionSettings>);
+  const hasPublishedOverride = !motionSettingsEqual(settings, DEFAULT_MOTION_SETTINGS);
+
+  return {
+    settings,
+    source: "published",
+    hasPublishedOverride,
+  };
+});
+
+export const getDraftMotionSettings = cache(async (): Promise<MotionSettings> => {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("design_section_configs")
+    .select("config")
+    .eq("placement", MOTION_PLACEMENT)
+    .eq("status", "draft")
+    .maybeSingle();
+
+  if (!data?.config || typeof data.config !== "object") {
+    return DEFAULT_MOTION_SETTINGS;
+  }
+
+  return normalizeMotionSettings(data.config as Partial<MotionSettings>);
+});

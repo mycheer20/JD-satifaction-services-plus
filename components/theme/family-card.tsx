@@ -25,7 +25,7 @@ export function FamilyCard({
   return (
     <Link
       href={`/famille/${family.slug}`}
-      className="group relative flex min-h-[11rem] flex-col overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+      className="motion-family-card group relative flex min-h-[11rem] flex-col overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] shadow-sm"
     >
       <div
         className={cn(
@@ -47,7 +47,7 @@ export function FamilyCard({
               sizes="(max-width:640px) 50vw, 25vw"
               className={cn(
                 "object-cover",
-                enableHover && "transition duration-500 group-hover:scale-105",
+                enableHover && "motion-family-image group-hover:scale-105",
               )}
               style={{ objectPosition: cover.imagePosition ?? "center" }}
               unoptimized={cover.imageUrl.endsWith(".gif")}
