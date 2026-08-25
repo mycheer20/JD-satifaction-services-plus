@@ -5,18 +5,11 @@ import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/features/auth/session";
 import { buildGuestWhatsAppMessage } from "@/features/checkout/guest-whatsapp";
+import { validateDeliverySelection } from "@/features/delivery/validate";
 import { getPaymentProvider, isCheckoutPaymentProvider } from "@/features/payments/provider";
 import { storeWhatsAppHref } from "@/lib/store/contact";
 import { publicEnv } from "@/lib/public-env";
-
-/**
- * Checkout.
- *
- * The browser submits *what* is being bought and where to ship it. It never
- * submits a price: `place_order` re-reads every price and stock level inside a
- * single transaction. A tampered cart therefore produces either the correct
- * total or an error, never a discount.
- */
+import type { Json } from "@/types/database";
 
 const lineSchema = z.object({
   productId: z.string().uuid().optional(),
@@ -37,10 +30,15 @@ const checkoutSchema = z.object({
   name: z.string().trim().min(2, "Le nom est requis.").max(120),
   email: z.string().trim().email("Adresse e-mail invalide."),
   phone: z.string().trim().min(6, "Le téléphone est requis.").max(40),
-  address: z.string().trim().min(5, "L'adresse est requise.").max(400),
-  city: z.string().trim().min(2, "La ville est requise.").max(120),
-  region: z.string().trim().max(120).optional().default(""),
-  postalCode: z.string().trim().max(20).optional().default(""),
+  fulfillmentMode: z.enum(["delivery", "pickup"]),
+  countryId: z.string().uuid().optional().or(z.literal("")),
+  departmentId: z.string().uuid().optional().or(z.literal("")),
+  communeId: z.string().uuid().optional().or(z.literal("")),
+  cityId: z.string().uuid().optional().or(z.literal("")),
+  zoneId: z.string().uuid().optional().or(z.literal("")),
+  address: z.string().trim().max(400).optional().default(""),
+  landmark: z.string().trim().max(200).optional().default(""),
+  deliveryPhone: z.string().trim().max(40).optional().default(""),
   note: z.string().trim().max(1000).optional().default(""),
   couponCode: z.string().trim().max(60).optional().default(""),
   paymentMethod: z.string().trim().min(1, "Choisissez un moyen de paiement."),
@@ -71,10 +69,15 @@ export async function submitOrder(
     name: formData.get("name"),
     email: formData.get("email"),
     phone: formData.get("phone"),
-    address: formData.get("address"),
-    city: formData.get("city"),
-    region: formData.get("region") ?? "",
-    postalCode: formData.get("postalCode") ?? "",
+    fulfillmentMode: formData.get("fulfillmentMode") ?? "delivery",
+    countryId: formData.get("countryId") ?? "",
+    departmentId: formData.get("departmentId") ?? "",
+    communeId: formData.get("communeId") ?? "",
+    cityId: formData.get("cityId") ?? "",
+    zoneId: formData.get("zoneId") ?? "",
+    address: formData.get("address") ?? "",
+    landmark: formData.get("landmark") ?? "",
+    deliveryPhone: formData.get("deliveryPhone") ?? "",
     note: formData.get("note") ?? "",
     couponCode: formData.get("couponCode") ?? "",
     paymentMethod: formData.get("paymentMethod"),
@@ -101,8 +104,25 @@ export async function submitOrder(
     return { status: "error", message: "Moyen de paiement indisponible." };
   }
 
-  // Reject a line that names neither a product nor a service before touching
-  // the database.
+  const deliveryResult = await validateDeliverySelection({
+    fulfillmentMode: input.fulfillmentMode,
+    countryId: input.countryId || undefined,
+    departmentId: input.departmentId || undefined,
+    communeId: input.communeId || undefined,
+    cityId: input.cityId || undefined,
+    zoneId: input.zoneId || undefined,
+    address: input.address,
+    landmark: input.landmark,
+    deliveryPhone: input.deliveryPhone,
+    note: input.note,
+  });
+
+  if (!deliveryResult.ok) {
+    return { status: "error", message: deliveryResult.message };
+  }
+
+  const delivery = deliveryResult.data;
+
   const items = input.items.map((line) => {
     if (!line.productId && !line.serviceId) {
       throw new Error("Ligne de commande invalide.");
@@ -127,10 +147,9 @@ export async function submitOrder(
       name: input.name,
       email: input.email,
       phone: input.phone,
-      address: input.address,
-      city: input.city,
-      region: input.region,
-      postalCode: input.postalCode,
+      delivery: delivery.snapshot,
+      shippingTotal: delivery.shippingTotal,
+      shippingCurrency: delivery.currency,
       note: input.note,
       couponCode: input.couponCode,
       paymentMethodLabel: provider.label,
@@ -145,15 +164,10 @@ export async function submitOrder(
 
   const supabase = createSupabaseAdminClient();
 
-  const shippingAddress = {
-    line1: input.address,
-    city: input.city,
-    region: input.region,
-    postal_code: input.postalCode,
-  };
+  const shippingAddress = delivery.snapshot as unknown as Json;
 
   const { data, error } = await supabase.rpc("place_order", {
-    p_user_id: user?.id ?? null,
+    p_user_id: user.id,
     p_customer: {
       name: input.name,
       email: input.email,
@@ -161,15 +175,15 @@ export async function submitOrder(
       shipping_address: shippingAddress,
       billing_address: shippingAddress,
       note: input.note,
-    },
+      fulfillment_mode: delivery.mode,
+      delivery_zone_id: delivery.zoneId,
+    } as Json,
     p_items: items,
     p_coupon_code: input.couponCode || null,
-    p_shipping_total: 0,
+    p_shipping_total: delivery.shippingTotal,
   });
 
   if (error) {
-    // The database raises a readable French message for the cases a shopper can
-    // actually hit (empty cart, unavailable product, insufficient stock).
     return { status: "error", message: error.message };
   }
 
@@ -204,8 +218,6 @@ export async function submitOrder(
     processed_at: intent.status === "paid" ? new Date().toISOString() : null,
   });
 
-  // An offline method leaves the order pending until an administrator confirms
-  // the funds; an online one may hand back a hosted payment page.
   if (intent.redirectUrl) redirect(intent.redirectUrl);
 
   redirect(`/commande/${order.order_id}?nouvelle=1`);

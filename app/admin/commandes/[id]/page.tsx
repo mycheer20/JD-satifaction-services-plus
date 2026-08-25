@@ -14,10 +14,9 @@ import { AdminPaymentsCard } from "@/components/admin/admin-payments-card";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
 import { orderHasConfirmedPayment } from "@/features/orders/payment-rules";
 import {
-  formatOrderShippingBlock,
-  hasOrderShippingAddress,
-  parseOrderShippingAddress,
-} from "@/lib/orders/address";
+  formatOrderDeliveryLines,
+  parseOrderDeliverySnapshot,
+} from "@/lib/orders/delivery-display";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import type { OrderStatus } from "@/types/database";
@@ -32,8 +31,8 @@ export default async function AdminOrderDetailPage({
   if (!order) notFound();
 
   const paymentConfirmed = orderHasConfirmedPayment(order.payments ?? []);
-  const shipping = parseOrderShippingAddress(order.shipping_address);
-  const shippingLines = formatOrderShippingBlock(shipping);
+  const delivery = parseOrderDeliverySnapshot(order.shipping_address);
+  const deliveryLines = formatOrderDeliveryLines(delivery);
 
   return (
     <>
@@ -113,15 +112,29 @@ export default async function AdminOrderDetailPage({
                 </div>
               ) : null}
               <div>
-                <dt className="text-muted">Adresse</dt>
+                <dt className="text-muted">Mode</dt>
+                <dd className="font-semibold">
+                  {order.fulfillment_mode === "pickup" ? "Retrait en boutique" : "Livraison"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted">Adresse / zone</dt>
                 <dd className="whitespace-pre-line font-medium">
-                  {hasOrderShippingAddress(shipping) ? (
-                    shippingLines
+                  {deliveryLines.length > 0 ? (
+                    deliveryLines.join("\n")
                   ) : (
                     <span className="text-muted">Non renseignée</span>
                   )}
                 </dd>
               </div>
+              {order.shipping_total > 0 ? (
+                <div>
+                  <dt className="text-muted">Frais appliqués</dt>
+                  <dd className="font-semibold">
+                    {formatPrice(Number(order.shipping_total), order.currency)}
+                  </dd>
+                </div>
+              ) : null}
             </dl>
           </Card>
 

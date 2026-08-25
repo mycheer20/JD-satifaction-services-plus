@@ -2,17 +2,26 @@ import { describe, expect, it } from "vitest";
 import { buildGuestWhatsAppMessage } from "@/features/checkout/guest-whatsapp";
 
 describe("buildGuestWhatsAppMessage", () => {
-  it("inclut coordonnées, articles et paiement", () => {
+  it("inclut zone, livraison et total", () => {
     const message = buildGuestWhatsAppMessage({
       name: "Jean Dupont",
       email: "jean@example.com",
       phone: "+509 4073 1772",
-      address: "12 rue Example",
-      city: "Port-au-Prince",
-      region: "Ouest",
-      postalCode: "",
+      delivery: {
+        fulfillment_mode: "delivery",
+        country_name: "Haïti",
+        department_name: "Sud-Est",
+        commune_name: "Jacmel",
+        city_name: "Jacmel",
+        zone_name: "Meyer",
+        line1: "Maison bleue",
+        delivery_fee_applied: 250,
+        currency: "HTG",
+      },
+      shippingTotal: 250,
+      shippingCurrency: "HTG",
       note: "Sonner deux fois",
-      couponCode: "PROMO10",
+      couponCode: "",
       paymentMethodLabel: "MonCash",
       lines: [
         {
@@ -24,11 +33,9 @@ describe("buildGuestWhatsAppMessage", () => {
       ],
     });
 
-    expect(message).toContain("Jean Dupont");
-    expect(message).toContain("jean@example.com");
-    expect(message).toContain("Peinture murale");
-    expect(message).toContain("MonCash");
-    expect(message).toContain("PROMO10");
-    expect(message).toContain("Sonner deux fois");
+    expect(message).toContain("Meyer");
+    expect(message).toContain("Maison bleue");
+    expect(message).toContain("250");
+    expect(message).toContain("3 250");
   });
 });

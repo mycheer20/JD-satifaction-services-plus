@@ -44,6 +44,7 @@ export const ADMIN_NAV: AdminNavSection[] = [
       { href: "/admin/produits", label: "Produits", icon: "📦", badgeKey: "lowStock" },
       { href: "/admin/marques", label: "Marques", icon: "🏷️" },
       { href: "/admin/commandes", label: "Commandes", icon: "🛒", badgeKey: "ordersPending" },
+      { href: "/admin/livraison", label: "Livraison", icon: "📍" },
       { href: "/admin/coupons", label: "Coupons", icon: "🎟️" },
       { href: "/admin/avis", label: "Avis clients", icon: "⭐", badgeKey: "reviewsPending" },
     ],

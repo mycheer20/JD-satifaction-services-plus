@@ -337,6 +337,8 @@ export type OrderRow = Timestamps & {
   customer_note: string | null;
   admin_note: string | null;
   placed_at: string;
+  fulfillment_mode: string;
+  delivery_zone_id: string | null;
 };
 
 export type OrderItemRow = {
@@ -482,6 +484,42 @@ export type ReviewRow = Timestamps & {
   status: ReviewStatus;
 };
 
+export type DeliveryCountryRow = Timestamps & {
+  id: string;
+  name: string;
+  is_active: boolean;
+};
+
+export type DeliveryDepartmentRow = Timestamps & {
+  id: string;
+  country_id: string;
+  name: string;
+  is_active: boolean;
+};
+
+export type DeliveryCommuneRow = Timestamps & {
+  id: string;
+  department_id: string;
+  name: string;
+  is_active: boolean;
+};
+
+export type DeliveryCityRow = Timestamps & {
+  id: string;
+  commune_id: string;
+  name: string;
+  is_active: boolean;
+};
+
+export type DeliveryZoneRow = Timestamps & {
+  id: string;
+  city_id: string;
+  name: string;
+  delivery_fee: number;
+  currency: string;
+  is_active: boolean;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -535,6 +573,11 @@ export type Database = {
       design_publications: Table<DesignPublicationRow, "published_at">;
       payment_webhook_events: Table<PaymentWebhookEventRow, "provider" | "event_id">;
       reviews: Table<ReviewRow, "product_id" | "user_id" | "rating">;
+      delivery_countries: Table<DeliveryCountryRow, "name">;
+      delivery_departments: Table<DeliveryDepartmentRow, "country_id" | "name">;
+      delivery_communes: Table<DeliveryCommuneRow, "department_id" | "name">;
+      delivery_cities: Table<DeliveryCityRow, "commune_id" | "name">;
+      delivery_zones: Table<DeliveryZoneRow, "city_id" | "name" | "delivery_fee">;
     };
     Views: Record<string, never>;
     Functions: {

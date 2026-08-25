@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useCallback, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useCart } from "@/features/cart/cart-context";
 import { submitOrder, type CheckoutState } from "@/features/checkout/actions";
-import { FormField, RadioField, TextArea, TextInput } from "@/components/ui/field";
+import { FormField, RadioField, TextInput } from "@/components/ui/field";
+import { CheckoutDeliverySection } from "@/components/storefront/checkout-delivery-section";
 import { Button } from "@/components/ui/button";
 import { Alert, EmptyState } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -32,6 +33,13 @@ export function CheckoutForm({
 }) {
   const { items, totals, ready, clear } = useCart();
   const [state, action] = useActionState(submitOrder, initialState);
+  const [shippingFee, setShippingFee] = useState(0);
+  const [shippingCurrency, setShippingCurrency] = useState(totals.currency);
+
+  const handleShippingChange = useCallback((fee: number, currency: string) => {
+    setShippingFee(fee);
+    setShippingCurrency(currency);
+  }, []);
 
   useEffect(() => {
     if (state.status === "whatsapp" && state.whatsAppUrl) {
@@ -123,29 +131,10 @@ export function CheckoutForm({
           </div>
         </Card>
 
-        <Card padding="md" className="space-y-4">
-          <h2 className="text-base font-bold text-[color:var(--color-foreground)]">Livraison</h2>
-          <p className="text-xs text-muted">
-            La préparation et l&apos;expédition débutent après confirmation de votre paiement.
-          </p>
-          <FormField label="Adresse" htmlFor="address" required error={state.fieldErrors?.address}>
-            <TextArea id="address" name="address" rows={2} required />
-          </FormField>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <FormField label="Ville" htmlFor="city" required error={state.fieldErrors?.city}>
-              <TextInput id="city" name="city" required />
-            </FormField>
-            <FormField label="Région" htmlFor="region">
-              <TextInput id="region" name="region" />
-            </FormField>
-            <FormField label="Code postal" htmlFor="postalCode">
-              <TextInput id="postalCode" name="postalCode" />
-            </FormField>
-          </div>
-          <FormField label="Instructions de livraison" htmlFor="note">
-            <TextArea id="note" name="note" rows={2} />
-          </FormField>
-        </Card>
+        <CheckoutDeliverySection
+          fieldErrors={state.fieldErrors}
+          onShippingChange={handleShippingChange}
+        />
 
         <Card padding="md" className="space-y-3">
           <h2 className="text-base font-bold text-[color:var(--color-foreground)]">
@@ -205,6 +194,28 @@ export function CheckoutForm({
           <span className="text-slate-600">Sous-total estimé</span>
           <span className="font-black text-[color:var(--color-foreground)]">
             <PriceDisplay amount={totals.subtotal} currency={totals.currency} layout="stack" />
+          </span>
+        </div>
+
+        <div className="flex justify-between text-sm">
+          <span className="text-slate-600">Livraison</span>
+          <span className="font-semibold text-[color:var(--color-foreground)]">
+            {shippingFee > 0 ? (
+              <PriceDisplay amount={shippingFee} currency={shippingCurrency} layout="stack" />
+            ) : (
+              "Gratuit / retrait"
+            )}
+          </span>
+        </div>
+
+        <div className="flex justify-between border-t border-[color:var(--color-border)] pt-3 text-sm font-bold">
+          <span>Total estimé</span>
+          <span className="text-[color:var(--accent)]">
+            <PriceDisplay
+              amount={totals.subtotal + shippingFee}
+              currency={totals.currency}
+              layout="stack"
+            />
           </span>
         </div>
 

@@ -19,10 +19,10 @@ import { PriceDisplay } from "@/components/storefront/price-display";
 import { ExchangeRateBar } from "@/components/storefront/exchange-rate-bar";
 import { ClearCartOnMount } from "@/components/storefront/clear-cart";
 import {
-  formatOrderShippingLines,
-  parseOrderShippingAddress,
-} from "@/lib/orders/address";
-import { formatDate } from "@/lib/utils";
+  formatOrderDeliveryLines,
+  parseOrderDeliverySnapshot,
+} from "@/lib/orders/delivery-display";
+import { formatDate, formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Ma commande",
@@ -39,8 +39,8 @@ export default async function OrderPage({
 
   const isNew = query.nouvelle === "1";
   const proofSent = query.preuve === "1";
-  const shipping = parseOrderShippingAddress(order.shipping_address);
-  const shippingLines = formatOrderShippingLines(shipping);
+  const delivery = parseOrderDeliverySnapshot(order.shipping_address);
+  const deliveryLines = formatOrderDeliveryLines(delivery);
   const pendingPayments = order.payments.filter((p) => p.status === "pending");
   const paymentConfirmed = orderHasConfirmedPayment(order.payments);
 
@@ -165,18 +165,16 @@ export default async function OrderPage({
 
       <div className="mb-6 grid gap-6 sm:grid-cols-2">
         <Card padding="md">
-          <CardHeader title="Livraison" className="mb-3" />
-          <address className="text-sm not-italic leading-relaxed text-slate-600">
-            {order.customer_name}
-            <br />
-            {shippingLines.map((line) => (
-              <span key={line}>
-                {line}
-                <br />
-              </span>
+          <CardHeader
+            title={delivery.fulfillment_mode === "pickup" ? "Retrait" : "Livraison"}
+            className="mb-3"
+          />
+          <div className="space-y-1 text-sm leading-relaxed text-slate-600">
+            {deliveryLines.map((line) => (
+              <p key={line}>{line}</p>
             ))}
-            {order.customer_phone}
-          </address>
+            {order.customer_phone ? <p>Tél. : {order.customer_phone}</p> : null}
+          </div>
           {order.customer_note ? (
             <p className="mt-3 text-sm text-slate-600">
               <span className="font-semibold text-[color:var(--color-foreground)]">

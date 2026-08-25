@@ -441,10 +441,13 @@ export type AdminOrderDetail = {
   shipping_address: unknown;
   customer_note: string | null;
   admin_note: string | null;
+  fulfillment_mode: string;
+  delivery_zone_id: string | null;
   subtotal: number;
   discount_total: number;
   shipping_total: number;
   total: number;
+  currency: string;
   placed_at: string;
   items: {
     id: string;

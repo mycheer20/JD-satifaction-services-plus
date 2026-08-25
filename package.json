@@ -17,6 +17,7 @@
     "db:seed": "node scripts/db-migrate.mjs --seed-only",
     "db:seed:api": "node scripts/db-seed-api.mjs",
     "db:clean-test": "node scripts/clean-test-data.mjs",
+    "db:clean-transactions": "node scripts/clean-test-transactions.mjs",
     "admin:promote": "node scripts/promote-admin.mjs"
   },
   "dependencies": {
