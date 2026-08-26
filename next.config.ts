@@ -18,6 +18,12 @@ function supabaseImageHost(): string | undefined {
 const supabaseHost = supabaseImageHost();
 
 const nextConfig: NextConfig = {
+  // Les Server Actions acceptent par défaut 1 Mo — insuffisant pour les photos JPG.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "20mb",
+    },
+  },
   images: {
     remotePatterns: supabaseHost
       ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/**" }]

@@ -8,6 +8,7 @@ import { getFieldDefinitionsForSubcategory } from "@/features/catalog/queries";
 import { parseDynamicFields } from "@/features/fields/validation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { resolveImageMime } from "@/lib/uploads/resolve-image-mime";
 import { slugify } from "@/lib/utils";
 import { publicEnv } from "@/lib/public-env";
 import type { ProductStatus } from "@/types/database";
@@ -172,11 +173,13 @@ export async function saveProduct(formData: FormData) {
 
       const storagePath = `${productId}/${Date.now()}-${sanitizeFileName(file.name)}`;
       const buffer = Buffer.from(await file.arrayBuffer());
+      const mime = resolveImageMime(file, buffer);
+      if (!mime) continue;
 
       const { error: uploadError } = await admin.storage
         .from("product-images")
         .upload(storagePath, buffer, {
-          contentType: file.type || "image/jpeg",
+          contentType: mime,
           upsert: false,
         });
 

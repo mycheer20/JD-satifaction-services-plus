@@ -9,6 +9,7 @@ import { getSessionUser } from "@/features/auth/session";
 import { getServiceBySlug } from "@/features/services/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { resolveImageMime } from "@/lib/uploads/resolve-image-mime";
 import type { Json } from "@/types/database";
 
 export interface ServiceBriefState {
@@ -58,11 +59,13 @@ async function uploadBriefFiles(
 
       const storagePath = `${requestId}/${field.key}/${sanitizeFileName(entry.name)}`;
       const buffer = Buffer.from(await entry.arrayBuffer());
+      const imageMime = resolveImageMime(entry, buffer);
+      const contentType = imageMime ?? (entry.type || "application/octet-stream");
 
       const { error: uploadError } = await admin.storage
         .from("brief-uploads")
         .upload(storagePath, buffer, {
-          contentType: entry.type || "application/octet-stream",
+          contentType,
           upsert: false,
         });
 
@@ -75,7 +78,7 @@ async function uploadBriefFiles(
         field_key: field.key,
         storage_path: storagePath,
         file_name: entry.name,
-        mime_type: entry.type || null,
+        mime_type: contentType === "application/octet-stream" ? entry.type || null : contentType,
         size_bytes: entry.size,
       });
     }

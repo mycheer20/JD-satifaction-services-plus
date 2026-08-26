@@ -20,7 +20,7 @@ export const MEDIA_UPLOAD_HINT = {
   formats: [...ALLOWED_EXTENSIONS].map((e) => e.toUpperCase()).join(", "),
   maxSize: formatMediaBytes(DESIGN_MEDIA_MAX_BYTES),
   maxDimensions: `${DESIGN_MEDIA_MAX_WIDTH} × ${DESIGN_MEDIA_MAX_HEIGHT} px max`,
-  accept: "image/jpeg,image/png,image/webp,image/avif,image/gif,image/svg+xml",
+  accept: "image/jpeg,image/jpg,image/png,image/webp,image/avif,image/gif,image/svg+xml,.jpg,.jpeg",
 } as const;
 
 export const MEDIA_KIND_LABELS: Record<"image" | "svg" | "animated", string> = {

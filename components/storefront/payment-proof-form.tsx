@@ -68,7 +68,7 @@ export function PaymentProofForm({
           id={`proofs-${paymentId}`}
           name="proofs"
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,.jpg,.jpeg"
           multiple
           required={requireFiles}
           className="block w-full cursor-pointer rounded-xl border-2 border-dashed border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-6 text-sm text-muted file:mr-4 file:rounded-lg file:border-0 file:bg-[color:var(--accent-soft)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[color:var(--accent)]"

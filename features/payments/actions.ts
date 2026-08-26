@@ -11,6 +11,7 @@ import {
 } from "@/features/payments/mobile-money";
 import { notifyAdminPaymentProofSubmitted } from "@/features/admin/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { resolveImageMime } from "@/lib/uploads/resolve-image-mime";
 
 export interface PaymentProofState {
   status: "idle" | "error";
@@ -31,8 +32,6 @@ const proofSchema = z.object({
 function sanitizeFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120) || "capture";
 }
-
-const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 async function assertCanSubmitProof(orderId: string, userId: string | null) {
   const admin = createSupabaseAdminClient();
@@ -157,17 +156,16 @@ export async function submitPaymentProof(
       };
     }
 
-    const mime = file.type || "application/octet-stream";
-    if (!ALLOWED_MIME.has(mime)) {
+    const storagePath = `${orderId}/${paymentId}/${Date.now()}-${index}-${sanitizeFileName(file.name)}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const mime = resolveImageMime(file, buffer);
+    if (!mime) {
       return {
         status: "error",
         message: "Format non accepté. Utilisez JPEG, PNG ou WebP.",
         fieldErrors: { proofs: "Formats acceptés : JPEG, PNG, WebP, GIF." },
       };
     }
-
-    const storagePath = `${orderId}/${paymentId}/${Date.now()}-${index}-${sanitizeFileName(file.name)}`;
-    const buffer = Buffer.from(await file.arrayBuffer());
 
     const { error: uploadError } = await admin.storage
       .from("payment-proofs")
