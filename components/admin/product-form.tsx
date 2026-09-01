@@ -253,7 +253,7 @@ export function ProductForm({
             {images.map((image) => (
               <li key={image.id} className="relative overflow-hidden rounded-xl border">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image.url} alt={image.alt_text ?? ""} className="aspect-square object-cover" />
+                <img src={image.url} alt={image.alt_text ?? ""} className="aspect-square bg-[color:var(--color-surface-muted)] object-contain p-1" />
                 {deleteImageAction ? (
                   <Button
                     type="submit"

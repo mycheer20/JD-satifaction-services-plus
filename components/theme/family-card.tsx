@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import type { FamilyNode } from "@/features/catalog/types";
 import type { ResolvedPlacementMedia } from "@/types/design";
 import { getFamilyVisual, isFamilySlug, isLightFamily } from "@/lib/theme/families";
+import { IMAGE_DISPLAY_QUALITY, IMAGE_FIT_CONTAIN, IMAGE_FRAME_BG } from "@/lib/image-display";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -29,7 +30,8 @@ export function FamilyCard({
     >
       <div
         className={cn(
-          "relative h-28 overflow-hidden",
+          "relative aspect-[2/1] shrink-0 overflow-hidden",
+          IMAGE_FRAME_BG,
           !cover?.imageUrl && (visual?.gradient ?? "hero-brand"),
         )}
         style={
@@ -45,10 +47,8 @@ export function FamilyCard({
               alt={cover.altText ?? family.name}
               fill
               sizes="(max-width:640px) 50vw, 25vw"
-              className={cn(
-                "object-cover",
-                enableHover && "motion-family-image group-hover:scale-105",
-              )}
+              quality={IMAGE_DISPLAY_QUALITY}
+              className={IMAGE_FIT_CONTAIN}
               style={{ objectPosition: cover.imagePosition ?? "center" }}
               unoptimized={cover.imageUrl.endsWith(".gif")}
             />

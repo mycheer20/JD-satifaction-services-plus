@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { DesignMediaRow } from "@/types/database";
+import { IMAGE_DISPLAY_QUALITY, IMAGE_FIT_CONTAIN } from "@/lib/image-display";
 import { cn } from "@/lib/utils";
 
 export function MediaThumbnail({
@@ -38,7 +39,8 @@ export function MediaThumbnail({
       fill
       sizes={sizes}
       priority={priority}
-      className={cn("object-cover", className)}
+      quality={IMAGE_DISPLAY_QUALITY}
+      className={cn(IMAGE_FIT_CONTAIN, className)}
       unoptimized={media.media_kind === "animated"}
     />
   );

@@ -8,6 +8,8 @@ import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, QuantityStepper, Skeleton } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { TextLink } from "@/components/ui/link";
+import { IMAGE_DISPLAY_QUALITY, IMAGE_FIT_CONTAIN, IMAGE_FRAME_BG } from "@/lib/image-display";
+import { cn } from "@/lib/utils";
 
 export function CartView() {
   const { items, totals, ready, setQuantity, removeItem, clear } = useCart();
@@ -33,14 +35,15 @@ export function CartView() {
         <ul className="divide-y divide-[color:var(--color-border)]">
           {items.map((item) => (
             <li key={item.lineId} className="flex gap-4 p-5">
-              <div className="relative size-24 shrink-0 overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-muted)]">
+              <div className={cn("relative size-24 shrink-0 overflow-hidden rounded-xl border border-[color:var(--color-border)]", IMAGE_FRAME_BG)}>
                 {item.image ? (
                   <Image
                     src={item.image}
                     alt={item.name}
                     fill
                     sizes="96px"
-                    className="object-contain p-2"
+                    quality={IMAGE_DISPLAY_QUALITY}
+                    className={cn(IMAGE_FIT_CONTAIN, "p-1")}
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-2xl opacity-30">

@@ -12,6 +12,7 @@ import { PriceDisplay } from "@/components/storefront/price-display";
 import { cn } from "@/lib/utils";
 import { StoreContactActions } from "@/components/storefront/store-contact-actions";
 import type { StoreContactSnapshot } from "@/lib/store/contact";
+import { IMAGE_DISPLAY_QUALITY, IMAGE_FIT_CONTAIN, IMAGE_FRAME_BG } from "@/lib/image-display";
 
 export function ProductPurchase({
   product,
@@ -68,7 +69,7 @@ export function ProductPurchase({
     <div className="grid gap-10 lg:grid-cols-2">
       <div className="space-y-4">
         <Card padding="none" tone="elevated" className="overflow-hidden">
-          <div className="relative aspect-square bg-gradient-to-b from-[color:var(--color-surface-muted)] to-white">
+          <div className={cn("relative aspect-square", IMAGE_FRAME_BG)}>
             {current ? (
               <Image
                 src={current.url}
@@ -76,7 +77,8 @@ export function ProductPurchase({
                 fill
                 priority
                 sizes="(min-width: 1024px) 45vw, 100vw"
-                className="object-contain p-8"
+                quality={IMAGE_DISPLAY_QUALITY}
+                className={cn(IMAGE_FIT_CONTAIN, "p-3")}
               />
             ) : (
               <div className="flex h-full flex-col items-center justify-center gap-2 text-slate-400">
@@ -107,8 +109,9 @@ export function ProductPurchase({
                   src={image.url}
                   alt={image.alt ?? ""}
                   fill
-                  sizes="10vw"
-                  className="object-contain p-1.5"
+                  sizes="80px"
+                  quality={IMAGE_DISPLAY_QUALITY}
+                  className={cn(IMAGE_FIT_CONTAIN, "p-1")}
                 />
               </button>
             ))}

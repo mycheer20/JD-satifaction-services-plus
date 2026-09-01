@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import type { HeroSectionConfig, ResolvedPlacementMedia } from "@/types/design";
+import { IMAGE_DISPLAY_QUALITY, IMAGE_FIT_CONTAIN, IMAGE_FRAME_BG } from "@/lib/image-display";
 import { cn } from "@/lib/utils";
 
 type ConfigurableHeroProps = {
@@ -30,20 +31,23 @@ export function ConfigurableHero({ media, children, className }: ConfigurableHer
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-3xl px-6 py-16 text-white shadow-xl sm:px-12 sm:py-24",
+        "relative min-h-[18rem] overflow-hidden rounded-3xl px-6 py-16 text-white shadow-xl sm:min-h-[24rem] sm:px-12 sm:py-24",
         className,
       )}
     >
-      <Image
-        src={imageUrl}
-        alt={altText}
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover"
-        style={{ objectPosition: position }}
-        unoptimized={imageUrl.endsWith(".gif")}
-      />
+      <div className={cn("absolute inset-0", IMAGE_FRAME_BG)}>
+        <Image
+          src={imageUrl}
+          alt={altText}
+          fill
+          priority
+          sizes="(max-width: 1280px) 100vw, 1280px"
+          quality={IMAGE_DISPLAY_QUALITY}
+          className={IMAGE_FIT_CONTAIN}
+          style={{ objectPosition: position }}
+          unoptimized={imageUrl.endsWith(".gif")}
+        />
+      </div>
       <div
         className="absolute inset-0 bg-black"
         style={{ opacity: overlay }}
@@ -94,7 +98,7 @@ function HeroSlider({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-3xl px-6 py-16 text-white shadow-xl sm:px-12 sm:py-24",
+        "relative min-h-[18rem] overflow-hidden rounded-3xl px-6 py-16 text-white shadow-xl sm:min-h-[24rem] sm:px-12 sm:py-24",
         className,
       )}
       onMouseEnter={config.pauseOnHover ? () => setPaused(true) : undefined}
@@ -113,20 +117,23 @@ function HeroSlider({
           )}
           aria-hidden={slideIndex !== index}
         >
-          <Image
-            src={slide.publicUrl}
-            alt={slide.altText}
-            fill
-            priority={slideIndex === 0}
-            sizes="100vw"
-            className="object-cover"
-            style={{ objectPosition: slide.imagePosition }}
-            unoptimized={slide.publicUrl.endsWith(".gif")}
-          />
-          <div
-            className="absolute inset-0 bg-black"
-            style={{ opacity: slide.overlayOpacity }}
-          />
+          <div className={cn("absolute inset-0", IMAGE_FRAME_BG)}>
+            <Image
+              src={slide.publicUrl}
+              alt={slide.altText}
+              fill
+              priority={slideIndex === 0}
+              sizes="(max-width: 1280px) 100vw, 1280px"
+              quality={IMAGE_DISPLAY_QUALITY}
+              className={IMAGE_FIT_CONTAIN}
+              style={{ objectPosition: slide.imagePosition }}
+              unoptimized={slide.publicUrl.endsWith(".gif")}
+            />
+            <div
+              className="absolute inset-0 bg-black"
+              style={{ opacity: slide.overlayOpacity }}
+            />
+          </div>
         </div>
       ))}
 

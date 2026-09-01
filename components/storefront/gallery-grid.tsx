@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DesignGalleryCategoryId } from "@/lib/design/placements";
 import { galleryCategoryLabel } from "@/lib/design/gallery-utils";
 import type { ResolvedGalleryItem } from "@/types/design";
+import { IMAGE_DISPLAY_QUALITY, IMAGE_FIT_CONTAIN } from "@/lib/image-display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -72,7 +73,8 @@ export function GalleryGrid({ items, limit, className }: GalleryGridProps) {
               alt={item.altText}
               fill
               sizes="(max-width:640px) 100vw, 33vw"
-              className="motion-gallery-image object-cover motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              quality={IMAGE_DISPLAY_QUALITY}
+              className={IMAGE_FIT_CONTAIN}
               unoptimized={item.publicUrl.endsWith(".gif")}
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent p-4">
@@ -101,13 +103,15 @@ export function GalleryGrid({ items, limit, className }: GalleryGridProps) {
             className="relative max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-2xl bg-black shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="relative aspect-[16/10] max-h-[75vh] w-full">
+            <div className="relative flex min-h-[12rem] max-h-[75vh] w-full items-center justify-center bg-black">
               <Image
                 src={activeItem.publicUrl}
                 alt={activeItem.altText}
-                fill
+                width={1600}
+                height={1200}
                 sizes="100vw"
-                className="object-contain"
+                quality={IMAGE_DISPLAY_QUALITY}
+                className="max-h-[75vh] w-auto max-w-full object-contain"
                 unoptimized={activeItem.publicUrl.endsWith(".gif")}
                 priority
               />

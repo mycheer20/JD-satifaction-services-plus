@@ -94,7 +94,7 @@ async function AdminPaymentItem({
                 <img
                   src={file.url}
                   alt={file.fileName}
-                  className="aspect-video w-full object-cover"
+                  className="aspect-video w-full bg-[color:var(--color-surface-muted)] object-contain"
                 />
               </a>
               <p className="mt-1 truncate text-[10px] text-muted">{file.fileName}</p>
